@@ -1,0 +1,29 @@
+FallbackResource index.php
+
+# https://webhint.io/docs/user-guide/hints/hint-x-content-type-options/?source=devtools
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+</IfModule>
+
+# https://webhint.io/docs/user-guide/hints/hint-no-disallowed-headers/?source=devtools
+<IfModule mod_headers.c>
+    Header unset Expires
+    Header unset Host
+    Header unset P3P
+    Header unset Pragma
+    Header unset Public-Key-Pins
+    Header unset Public-Key-Pins-Report-Only
+    Header unset Via
+    Header unset X-AspNet-Version
+    Header unset X-AspNetMvc-version
+    Header unset X-Frame-Options
+    Header unset X-Powered-By
+    Header unset X-Runtime
+    Header unset X-Version
+</IfModule>
+
+# CORS
+<IfModule mod_headers.c>
+    # TODO change from * to actual origin in php 
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
