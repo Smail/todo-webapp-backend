@@ -11,23 +11,18 @@ CREATE TABLE IF NOT EXISTS User
 CREATE TABLE IF NOT EXISTS Project
 (
     ProjectId   INTEGER PRIMARY KEY AUTOINCREMENT,
-    UserId      INTEGER     NOT NULL,
-    ProjectName TEXT UNIQUE NOT NULL,
+    UserId      INTEGER NOT NULL,
+    ProjectName TEXT    NOT NULL,
     FOREIGN KEY (UserId) REFERENCES User (UserId)
-);
-
-CREATE TABLE IF NOT EXISTS Task
-(
-    TaskId      INTEGER PRIMARY KEY AUTOINCREMENT,
-    TaskName    TEXT NOT NULL,
-    TaskContent TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ProjectTasks
 (
-    ProjectId INTEGER NOT NULL,
-    TaskId    INTEGER NOT NULL,
-    FOREIGN KEY (ProjectId) REFERENCES Project (ProjectId),
-    FOREIGN KEY (TaskId) REFERENCES Task (TaskId),
-    PRIMARY KEY (ProjectId, TaskId)
+    TaskId      INTEGER PRIMARY KEY AUTOINCREMENT,
+    ProjectId   INTEGER NOT NULL,
+    TaskName    TEXT    NOT NULL,
+    TaskContent TEXT,
+    Duration    INTEGER, -- Duration in minutes
+    DueDate     DATE,
+    FOREIGN KEY (ProjectId) REFERENCES Project (ProjectId)
 );
