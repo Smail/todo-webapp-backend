@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS project_tasks
 (
     project_id INTEGER NOT NULL,
     task_id    INTEGER NOT NULL,
-    FOREIGN KEY (project_id) REFERENCES project_id (project_id),
-    FOREIGN KEY (task_id) REFERENCES task_id (task_id),
+    FOREIGN KEY (project_id) REFERENCES project (project_id),
+    FOREIGN KEY (task_id) REFERENCES task (task_id),
     PRIMARY KEY (project_id, task_id)
 );
