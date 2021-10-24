@@ -18,7 +18,8 @@ echo $response;
 //}
 
 function get_all_projects($userId): string {
-    $stmt = select_from_database(
+    $db = new Database();
+    $stmt = $db->create_stmt(
         "SELECT ProjectId AS id, ProjectName AS name
          FROM Project
          WHERE Project.UserId = :userId",
@@ -35,7 +36,8 @@ function get_project($userId, $projectId): string {
 }
 
 function get_tasks($userId, $projectId): string {
-    $stmt = select_from_database(
+    $db = new Database();
+    $stmt = $db->create_stmt(
         "SELECT TaskId AS id, TaskName AS name, TaskContent AS content, Duration AS duration, DueDate AS dueDate
          FROM ProjectTasks JOIN Project on ProjectTasks.ProjectId = Project.ProjectId
          WHERE ProjectTasks.ProjectId = :projectId AND UserId = :userId",
@@ -43,22 +45,8 @@ function get_tasks($userId, $projectId): string {
             ':userId' => $userId,
             ':projectId' => $projectId
         ]);
+
     return query_result_to_json($stmt->execute());
-}
-
-function select_from_database(string $query, array $valueBindings): SQLite3Stmt {
-    $db = new SQLite3("database/db.sqlite3");
-    $db->enableExceptions(true);
-    $stmt = $db->prepare($query);
-
-    foreach ($valueBindings as $key => $value) {
-        if (!str_starts_with($key, ':')) {
-            $key = ':' . $key;
-        }
-        $stmt->bindValue($key, $value);
-    }
-
-    return $stmt;
 }
 
 function query_result_to_json(SQLite3Result $result): string {
