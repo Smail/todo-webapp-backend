@@ -17,7 +17,14 @@ if (isset($_POST['action'])) {
         'get_project' => get_project($_SESSION['user_id'], $_POST['projectId']),
         'get_tasks' => get_tasks($_SESSION['user_id'], $_POST['projectId']),
         'update_task_name' => update_task_name($_SESSION['user_id'], $_POST['taskId'], $_POST['taskName']),
-        'create_task' => create_task(),
+        'create_task' => create_task(
+            $userId = $_SESSION['user_id'],
+            $projectId = $_POST['projectId'],
+            $taskName = $_POST['taskName'],
+            $taskContent = $_POST['taskContent'],
+            $taskDuration = $_POST['taskDuration'],
+            $taskDueDate = $_POST['taskDueDate'],
+        ),
         default => $unknownAction,
     };
 
@@ -33,13 +40,38 @@ if (isset($_POST['action'])) {
     echo "'action' was not defined";
 }
 
-function create_task(): string {
-    $projectId = $_POST['projectId'] ?? null;
-    $taskName = $_POST['taskName'] ?? null;
-    $taskContent = $_POST['taskContent'] ?? null;
-    $taskDuration = $_POST['taskDuration'] ?? null;
-    $taskDueDate = $_POST['taskDueDate'] ?? null;
+function equals_session_user_id(?int $userId): bool {
+    return !empty($_SESSION['user_id']) && !empty($userId) && $_SESSION['user_id'] === $userId;
+}
+
+function is_string_empty(?string $str): bool {
+    return !isset($str) || $str == null || strlen(trim($str)) === 0;
+}
+
+/**
+ * @param int $userId
+ * @param int $projectId
+ * @param string $taskName
+ * @param string|null $taskContent
+ * @param string|null $taskDuration
+ * @param string|null $taskDueDate
+ * @return string
+ */
+function create_task(int $userId, int $projectId, string $taskName, ?string $taskContent, ?string $taskDuration, ?string $taskDueDate): string {
+    // TODO Check if projectId exists
+
+    if ($userId < 1) {
+        throw new InvalidArgumentException('User ID is less than 1');
+    }
+    if ($projectId < 1) {
+        throw new InvalidArgumentException('Project ID is less than 1');
+    }
+    if (is_string_empty($taskName)) {
+        throw new InvalidArgumentException('Task name cannot be empty');
+    }
+
     $bindings = [
+        ':userId' => $userId,
         ':projectId' => $projectId,
         ':taskName' => $taskName,
         ':taskContent' => $taskContent,
@@ -48,12 +80,13 @@ function create_task(): string {
     ];
     $get_ids_query =
         "SELECT TaskId FROM ProjectTasks
-         WHERE ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
+         WHERE UserId = :userId AND ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
            AND Duration = :taskDuration AND DueDate = :taskDueDate";
     $db = new Database();
 
     // Check if there exists an identical entry
     $stmt = $db->create_stmt($get_ids_query, $bindings);
+    file_put_contents('hello.log', $stmt->getSQL(true));
 
     // Add all existing IDs to an array, so that we can later check which ID was added.
     $res = $stmt->execute();
