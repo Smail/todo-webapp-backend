@@ -73,7 +73,7 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
 
     $get_ids_query =
         "SELECT TaskId FROM ProjectTasks
-         WHERE UserId = :userId AND ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
+         WHERE ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
            AND Duration = :taskDuration AND DueDate = :taskDueDate";
     $bindings = [
         ':userId' => $userId,
