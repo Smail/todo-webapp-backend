@@ -31,6 +31,73 @@ if (isset($_POST['action'])) {
     echo "'action' was not defined";
 }
 
+function create_task(): string {
+    $projectId = $_POST['projectId'] ?? null;
+    $taskName = $_POST['taskName'] ?? null;
+    $taskContent = $_POST['taskContent'] ?? null;
+    $taskDuration = $_POST['taskDuration'] ?? null;
+    $taskDueDate = $_POST['taskDueDate'] ?? null;
+    $bindings = [
+        ':projectId' => $projectId,
+        ':taskName' => $taskName,
+        ':taskContent' => $taskContent,
+        ':taskDuration' => $taskDuration,
+        ':taskDueDate' => $taskDueDate,
+    ];
+    $get_ids_query =
+        "SELECT TaskId FROM ProjectTasks
+         WHERE ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
+           AND Duration = :taskDuration AND DueDate = :taskDueDate";
+    $db = new Database();
+
+    // Check if there exists an identical entry
+    $stmt = $db->create_stmt($get_ids_query, $bindings);
+
+    // Add all existing IDs to an array, so that we can later check which ID was added.
+    $res = $stmt->execute();
+    $existing_ids = [];
+    while ($row = $res->fetchArray(SQLITE3_NUM)) {
+        $existing_ids[] = $row[0];
+    }
+    $stmt->close();
+
+    // Insert the new task into the database
+    $db->begin_transaction();
+    $stmt = $db->create_stmt(
+        "INSERT INTO ProjectTasks(ProjectId, TaskName, TaskContent, Duration, DueDate)
+         VALUES (:projectId, :taskName, :taskContent, :taskDuration, :taskDueDate)",
+        $bindings,
+    );
+
+    $stmt->execute();
+    $stmt->close();
+
+    // Fetch all task IDs with identical entries again and compare them to the previously fetched IDs in $existing_ids.
+    // Return the ID, which was previously not in the database, i.e. which is not in $existing_ids.
+    $stmt = $db->create_stmt($get_ids_query, $bindings);
+    $res = $stmt->execute();
+    $ids = [];
+    while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+        $ids[] = $row['TaskId'];
+    }
+    $stmt->close();
+    $diff = array_diff($ids, $existing_ids);
+
+    // $diff should only contain exactly element. If there are more elements, then this means, that an identical request
+    // was sent simultaneously to the server and the other process was faster. Essentially, someone inserted or deleted
+    // a task in the meantime, and we don't want to allow something like this and will abort here and rollback.
+    // I am not sure if this is even possible with transactions, since there are various conflicting sources.
+    $length = count($diff);
+    if ($length === 1) {
+        $db->commit_transaction();
+        return json_encode($diff);
+    } else {
+        $db->rollback_transaction();
+        http_response_code(501);
+        return 'Concurrent insert or delete';
+    }
+}
+
 function get_all_projects($userId): string {
     $db = new Database();
     $stmt = $db->create_stmt(
