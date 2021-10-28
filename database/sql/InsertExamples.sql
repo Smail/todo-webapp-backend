@@ -23,3 +23,9 @@ VALUES (3, 'How to get rich',
 2. Make money
 3. Buy fancy stuff'),
        (3, 'Buy Stocks', 'TSLA, AAPL, GOOG, SMAIL');
+
+INSERT INTO ProjectTasks(ProjectId, TaskName, TaskContent)
+VALUES (2, 'Tomatoes', ''),
+       (2, 'Popcorn', ''),
+       (2, 'Pizza', ''),
+       (2, 'Mozzarella', '');
