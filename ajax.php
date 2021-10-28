@@ -96,39 +96,42 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
     $stmt->close();
 
     // Insert the new task into the database
-    $db->begin_transaction();
-    $stmt = $db->create_stmt(
-        "INSERT INTO ProjectTasks(ProjectId, TaskName, TaskContent, Duration, DueDate)
+    try {
+        $db->begin_transaction();
+        $stmt = $db->create_stmt(
+            "INSERT INTO ProjectTasks(ProjectId, TaskName, TaskContent, Duration, DueDate)
          VALUES (:projectId, :taskName, :taskContent, :taskDuration, :taskDueDate)",
-        $bindings,
-    );
+            $bindings,
+        );
+        $stmt->execute();
+        $stmt->close();
 
-    $stmt->execute();
-    $stmt->close();
+        // Fetch all task IDs with identical entries again and compare them to the previously fetched IDs in $existing_ids.
+        // Return the ID, which was previously not in the database, i.e. which is not in $existing_ids.
+        $stmt = $db->create_stmt($get_ids_query, $bindings);
+        $res = $stmt->execute();
+        $ids = [];
+        while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+            $ids[] = $row['TaskId'];
+        }
+        $stmt->close();
+        $diff = array_diff($ids, $existing_ids);
 
-    // Fetch all task IDs with identical entries again and compare them to the previously fetched IDs in $existing_ids.
-    // Return the ID, which was previously not in the database, i.e. which is not in $existing_ids.
-    $stmt = $db->create_stmt($get_ids_query, $bindings);
-    $res = $stmt->execute();
-    $ids = [];
-    while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
-        $ids[] = $row['TaskId'];
-    }
-    $stmt->close();
-    $diff = array_diff($ids, $existing_ids);
-
-    // $diff should only contain exactly element. If there are more elements, then this means, that an identical request
-    // was sent simultaneously to the server and the other process was faster. Essentially, someone inserted or deleted
-    // a task in the meantime, and we don't want to allow something like this and will abort here and rollback.
-    // I am not sure if this is even possible with transactions, since there are various conflicting sources.
-    $length = count($diff);
-    if ($length === 1) {
-        $db->commit_transaction();
-        return json_encode($diff);
-    } else {
+        // $diff should only contain exactly element. If there are more elements, then this means, that an identical request
+        // was sent simultaneously to the server and the other process was faster. Essentially, someone inserted or deleted
+        // a task in the meantime, and we don't want to allow something like this and will abort here and rollback.
+        // I am not sure if this is even possible with transactions, since there are various conflicting sources.
+        $length = count($diff);
+        if ($length === 1) {
+            $db->commit_transaction();
+            return json_encode($diff);
+        } else {
+            throw new RuntimeException('Concurrent insert or delete');
+        }
+    } catch (Exception) {
         $db->rollback_transaction();
         http_response_code(501);
-        return 'Concurrent insert or delete';
+        return null;
     }
 }
 
