@@ -127,8 +127,8 @@ function create_task(int $userId, int $projectId, string $taskName, ?string $tas
     }
 }
 
-function update_task_name(int $userId, int $taskId, string $newTaskName): string {
-    $db = new Database();
+function update_task_name(Database $db, int $userId, int $taskId, string $newTaskName): bool {
+    throw new RuntimeException('Not implemented yet');
     $db->begin_transaction();
     $stmt = $db->create_stmt(
         'UPDATE ProjectTasks
@@ -139,8 +139,6 @@ function update_task_name(int $userId, int $taskId, string $newTaskName): string
 
     $stmt->execute();
     $stmt->close();
-
-    return '';
 }
 
 function get_all_projects($userId): string {
