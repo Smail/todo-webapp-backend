@@ -1,4 +1,5 @@
 <?php
+require_once 'Database.php';
 
 class User {
     private int $id = -1;

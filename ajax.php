@@ -1,5 +1,6 @@
 <?php
 require_once 'private/config.php';
+require_once 'private/Database.php';
 
 // TODO authentication does not work yet
 //if (!is_logged_in()) {
