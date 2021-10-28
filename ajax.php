@@ -64,7 +64,17 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
     if (is_string_empty($taskName)) {
         throw new InvalidArgumentException('Task name cannot be empty');
     }
+    // Does current user own the project ID
+    if (equals_current_user_id(get_project_owner_id($db, $projectId))) {
+        http_response_code(403);
+        // throw new RuntimeException('User does not own this project');
+        return null;
+    }
 
+    $get_ids_query =
+        "SELECT TaskId FROM ProjectTasks
+         WHERE UserId = :userId AND ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
+           AND Duration = :taskDuration AND DueDate = :taskDueDate";
     $bindings = [
         ':userId' => $userId,
         ':projectId' => $projectId,
@@ -73,14 +83,9 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
         ':taskDuration' => $taskDuration,
         ':taskDueDate' => $taskDueDate,
     ];
-    $get_ids_query =
-        "SELECT TaskId FROM ProjectTasks
-         WHERE UserId = :userId AND ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
-           AND Duration = :taskDuration AND DueDate = :taskDueDate";
 
     // Check if there exists an identical entry
     $stmt = $db->create_stmt($get_ids_query, $bindings);
-    file_put_contents('hello.log', $stmt->getSQL(true));
 
     // Add all existing IDs to an array, so that we can later check which ID was added.
     $res = $stmt->execute();
