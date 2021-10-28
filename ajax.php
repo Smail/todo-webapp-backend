@@ -153,17 +153,36 @@ function get_project_owner_id(Database $db, int $projectId): ?int {
 }
 
 function update_task_name(Database $db, int $userId, int $taskId, string $newTaskName): bool {
-    throw new RuntimeException('Not implemented yet');
-    $db->begin_transaction();
+    if ($userId < 1) {
+        throw new InvalidArgumentException('User ID is less than 1');
+    }
+    if ($taskId < 1) {
+        throw new InvalidArgumentException('Project ID is less than 1');
+    }
+
     $stmt = $db->create_stmt(
         'UPDATE ProjectTasks
          SET TaskName = :taskName
-         WHERE TaskId = :taskId',
-        [':taskId' => $taskId, ':taskName' => $newTaskName],
+         WHERE TaskId = :taskId
+            AND EXISTS(
+                SELECT *
+                FROM ProjectTasks T
+                    JOIN Project P on P.ProjectId = T.ProjectId
+                WHERE P.UserId = :userId
+                AND T.TaskId = :taskId
+            )',
+        [':userId' => $userId, ':taskId' => $taskId, ':taskName' => $newTaskName],
     );
 
-    $stmt->execute();
-    $stmt->close();
+    try {
+        $db->begin_transaction();
+        $stmt->execute();
+        $db->commit_transaction();
+
+        return true;
+    } catch (Exception) {
+        $db->rollback_transaction();
+    }
     return false;
 }
 
