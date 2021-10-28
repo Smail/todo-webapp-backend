@@ -2,21 +2,34 @@
 require_once 'private/config.php';
 require_once 'private/Database.php';
 
-// TODO authentication does not work yet
-//if (!is_logged_in()) {
-//    http_response_code(401);
-//    echo json_encode(array('Error' => 'Not logged in'));
-//} else {
-$response = match ($_POST['action']) {
-    // TODO change 2 to $_SESSION['user_id']
-    'get_all_projects' => get_all_projects(2),
-    'get_project' => get_project(2, $_POST['projectId']),
-    'get_tasks' => get_tasks(2, $_POST['projectId']),
-    default => 'Unknown action'
-};
+if (isset($_POST['action'])) {
+    // TODO authentication does not work yet
+    //if (!is_logged_in()) {
+    //    http_response_code(401);
+    //    echo json_encode(array('Error' => 'Not logged in'));
+    //} else {
+    $unknownAction = 'Unknown action';
+    $response = match ($_POST['action']) {
+        // TODO change 2 to $_SESSION['user_id']
+        'get_all_projects' => get_all_projects(2),
+        'get_project' => get_project(2, $_POST['projectId']),
+        'get_tasks' => get_tasks(2, $_POST['projectId']),
+        'update_task_name' => update_task_name(2, $_POST['taskId'], $_POST['taskName']),
+        'create_task' => create_task(),
+        default => $unknownAction,
+    };
 
-echo $response;
+    if ($response === $unknownAction) {
+        // Send 400 Bad Request
+        http_response_code(400);
+    }
+
+    echo $response;
 //}
+} else {
+    http_response_code(400);
+    echo "'action' was not defined";
+}
 
 function get_all_projects($userId): string {
     $db = new Database();
