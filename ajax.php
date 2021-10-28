@@ -140,6 +140,7 @@ function update_task_name(Database $db, int $userId, int $taskId, string $newTas
 
     $stmt->execute();
     $stmt->close();
+    return false;
 }
 
 function get_user_projects(Database $db, $userId): string {
