@@ -48,14 +48,13 @@ function is_string_empty(?string $str): bool {
  * @param int $userId
  * @param int $projectId
  * @param string $taskName
- * @param string|null $taskContent
- * @param string|null $taskDuration
- * @param string|null $taskDueDate
- * @return string
+ * @param string $taskContent
+ * @param string $taskDuration
+ * @param string $taskDueDate
+ * @return string|null
  */
-function create_task(Database $db, int $userId, int $projectId, string $taskName, ?string $taskContent, ?string $taskDuration, ?string $taskDueDate): string {
-    // TODO Check if projectId exists
-
+function create_task(Database $db, int $userId, int $projectId, string $taskName,
+                     string   $taskContent = '', string $taskDuration = '', string $taskDueDate = ''): ?string {
     if ($userId < 1) {
         throw new InvalidArgumentException('User ID is less than 1');
     }
@@ -135,7 +134,7 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
  * @param int $projectId
  * @return int|null Returns user ID or null of project ID does not exist.
  */
-function get_project_owner_id(Database $db, int $projectId): int|null {
+function get_project_owner_id(Database $db, int $projectId): ?int {
     $stmt = $db->create_stmt(
         'SELECT UserId
          FROM Project
