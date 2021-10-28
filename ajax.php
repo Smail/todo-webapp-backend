@@ -2,6 +2,9 @@
 require_once 'private/config.php';
 require_once 'private/Database.php';
 
+// TODO Remove. This is for testing only
+$_SESSION['user_id'] = 2;
+
 if (isset($_POST['action'])) {
     // TODO authentication does not work yet
     //if (!is_logged_in()) {
@@ -10,11 +13,10 @@ if (isset($_POST['action'])) {
     //} else {
     $unknownAction = 'Unknown action';
     $response = match ($_POST['action']) {
-        // TODO change 2 to $_SESSION['user_id']
-        'get_all_projects' => get_all_projects(2),
-        'get_project' => get_project(2, $_POST['projectId']),
-        'get_tasks' => get_tasks(2, $_POST['projectId']),
-        'update_task_name' => update_task_name(2, $_POST['taskId'], $_POST['taskName']),
+        'get_all_projects' => get_all_projects($_SESSION['user_id']),
+        'get_project' => get_project($_SESSION['user_id'], $_POST['projectId']),
+        'get_tasks' => get_tasks($_SESSION['user_id'], $_POST['projectId']),
+        'update_task_name' => update_task_name($_SESSION['user_id'], $_POST['taskId'], $_POST['taskName']),
         'create_task' => create_task(),
         default => $unknownAction,
     };
