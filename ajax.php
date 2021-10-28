@@ -133,6 +133,22 @@ function create_task(int $userId, int $projectId, string $taskName, ?string $tas
     }
 }
 
+function update_task_name(int $userId, int $taskId, string $newTaskName): string {
+    $db = new Database();
+    $db->begin_transaction();
+    $stmt = $db->create_stmt(
+        'UPDATE ProjectTasks
+         SET TaskName = :taskName
+         WHERE TaskId = :taskId',
+        [':taskId' => $taskId, ':taskName' => $newTaskName],
+    );
+
+    $stmt->execute();
+    $stmt->close();
+
+    return '';
+}
+
 function get_all_projects($userId): string {
     $db = new Database();
     $stmt = $db->create_stmt(
