@@ -2,15 +2,10 @@
 require_once 'private/config.php';
 require_once 'private/Database.php';
 
-// TODO Remove. This is for testing only
+// TODO When login works, this needs to be removed, so this is for testing only
 $_SESSION['user_id'] = 2;
 
 if (isset($_POST['action'])) {
-    // TODO authentication does not work yet
-    //if (!is_logged_in()) {
-    //    http_response_code(401);
-    //    echo json_encode(array('Error' => 'Not logged in'));
-    //} else {
     $unknownAction = 'Unknown action';
     $response = match ($_POST['action']) {
         'get_all_projects' => get_all_projects($_SESSION['user_id']),
@@ -34,7 +29,6 @@ if (isset($_POST['action'])) {
     }
 
     echo $response;
-//}
 } else {
     http_response_code(400);
     echo "'action' was not defined";
