@@ -7,12 +7,13 @@ $_SESSION['user_id'] = 2;
 
 if (isset($_POST['action'])) {
     $unknownAction = 'Unknown action';
+    $db = new Database();
     $response = match ($_POST['action']) {
-        'get_all_projects' => get_all_projects($_SESSION['user_id']),
-        'get_project' => get_project($_SESSION['user_id'], $_POST['projectId']),
-        'get_tasks' => get_tasks($_SESSION['user_id'], $_POST['projectId']),
-        'update_task_name' => update_task_name($_SESSION['user_id'], $_POST['taskId'], $_POST['taskName']),
-        'create_task' => create_task(
+        'get_all_projects' => get_all_projects($db, $_SESSION['user_id']),
+        'get_project' => get_project($db, $_SESSION['user_id'], $_POST['projectId']),
+        'get_tasks' => get_tasks($db, $_SESSION['user_id'], $_POST['projectId']),
+        'update_task_name' => update_task_name($db, $_SESSION['user_id'], $_POST['taskId'], $_POST['taskName']),
+        'create_task' => create_task($db,
             $userId = $_SESSION['user_id'],
             $projectId = $_POST['projectId'],
             $taskName = $_POST['taskName'],
@@ -43,6 +44,7 @@ function is_string_empty(?string $str): bool {
 }
 
 /**
+ * @param Database $db
  * @param int $userId
  * @param int $projectId
  * @param string $taskName
@@ -51,7 +53,7 @@ function is_string_empty(?string $str): bool {
  * @param string|null $taskDueDate
  * @return string
  */
-function create_task(int $userId, int $projectId, string $taskName, ?string $taskContent, ?string $taskDuration, ?string $taskDueDate): string {
+function create_task(Database $db, int $userId, int $projectId, string $taskName, ?string $taskContent, ?string $taskDuration, ?string $taskDueDate): string {
     // TODO Check if projectId exists
 
     if ($userId < 1) {
@@ -76,7 +78,6 @@ function create_task(int $userId, int $projectId, string $taskName, ?string $tas
         "SELECT TaskId FROM ProjectTasks
          WHERE UserId = :userId AND ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
            AND Duration = :taskDuration AND DueDate = :taskDueDate";
-    $db = new Database();
 
     // Check if there exists an identical entry
     $stmt = $db->create_stmt($get_ids_query, $bindings);
@@ -141,8 +142,7 @@ function update_task_name(Database $db, int $userId, int $taskId, string $newTas
     $stmt->close();
 }
 
-function get_all_projects($userId): string {
-    $db = new Database();
+function get_all_projects(Database $db, $userId): string {
     $stmt = $db->create_stmt(
         "SELECT ProjectId AS id, ProjectName AS name
          FROM Project
@@ -155,12 +155,11 @@ function get_all_projects($userId): string {
     return query_result_to_json($stmt->execute());
 }
 
-function get_project($userId, $projectId): string {
+function get_project(Database $db, $userId, $projectId): string {
     return "";
 }
 
-function get_tasks($userId, $projectId): string {
-    $db = new Database();
+function get_tasks(Database $db, $userId, $projectId): string {
     $stmt = $db->create_stmt(
         "SELECT TaskId AS id, TaskName AS name, TaskContent AS content, Duration AS duration, DueDate AS dueDate
          FROM ProjectTasks JOIN Project on ProjectTasks.ProjectId = Project.ProjectId
