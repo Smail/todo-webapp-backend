@@ -9,7 +9,7 @@ if (isset($_POST['action'])) {
     $unknownAction = 'Unknown action';
     $db = new Database();
     $response = match ($_POST['action']) {
-        'get_all_projects' => get_all_projects($db, $_SESSION['user_id']),
+        'get_all_projects', 'get_user_projects' => get_user_projects($db, $_SESSION['user_id']),
         'get_project' => get_project($db, $_SESSION['user_id'], $_POST['projectId']),
         'get_tasks' => get_tasks($db, $_SESSION['user_id'], $_POST['projectId']),
         'update_task_name' => update_task_name($db, $_SESSION['user_id'], $_POST['taskId'], $_POST['taskName']),
@@ -142,7 +142,7 @@ function update_task_name(Database $db, int $userId, int $taskId, string $newTas
     $stmt->close();
 }
 
-function get_all_projects(Database $db, $userId): string {
+function get_user_projects(Database $db, $userId): string {
     $stmt = $db->create_stmt(
         "SELECT ProjectId AS id, ProjectName AS name
          FROM Project
