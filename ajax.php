@@ -35,7 +35,7 @@ if (isset($_POST['action'])) {
     echo "'action' was not defined";
 }
 
-function equals_session_user_id(?int $userId): bool {
+function equals_current_user_id(?int $userId): bool {
     return !empty($_SESSION['user_id']) && !empty($userId) && $_SESSION['user_id'] === $userId;
 }
 
