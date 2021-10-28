@@ -128,6 +128,23 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
     }
 }
 
+/**
+ * Returns the user ID of the user, that owns (i.e. created) that project / project ID.
+ *
+ * @param Database $db
+ * @param int $projectId
+ * @return int|null Returns user ID or null of project ID does not exist.
+ */
+function get_project_owner_id(Database $db, int $projectId): int|null {
+    $stmt = $db->create_stmt(
+        'SELECT UserId
+         FROM Project
+         WHERE ProjectId = :projectId',
+        [':projectId' => $projectId],
+    );
+    return ($row = $stmt->execute()?->fetchArray(SQLITE3_NUM)) ? $row[0] : null;
+}
+
 function update_task_name(Database $db, int $userId, int $taskId, string $newTaskName): bool {
     throw new RuntimeException('Not implemented yet');
     $db->begin_transaction();
