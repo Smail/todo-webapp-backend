@@ -3,8 +3,9 @@
 class Database {
     private SQLite3 $db;
 
-    public function __construct() {
-        $this->db = new SQLite3($_SERVER['DOCUMENT_ROOT'] . "/database/db.sqlite3");
+    public function __construct(?string $path) {
+        $path = $path ?? $_SERVER['DOCUMENT_ROOT'] . "/database/db.sqlite3";
+        $this->db = new SQLite3($path);
         $this->db->enableExceptions(true);
     }
 
