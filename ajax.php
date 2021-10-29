@@ -65,7 +65,7 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
         throw new InvalidArgumentException('Task name cannot be empty');
     }
     // Does current user own the project ID
-    if (equals_current_user_id(get_project_owner_id($db, $projectId))) {
+    if (!equals_current_user_id(get_project_owner_id($db, $projectId))) {
         http_response_code(403);
         // throw new RuntimeException('User does not own this project');
         return null;
