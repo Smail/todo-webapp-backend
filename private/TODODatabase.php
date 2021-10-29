@@ -267,6 +267,7 @@ class TODODatabase {
             )",
             [
                 ':userId' => $this->user_id,
+                ':taskId' => $task_id,
                 ':taskName' => $task_name,
                 ':taskContent' => $task_content,
                 ':taskDuration' => $task_duration,
