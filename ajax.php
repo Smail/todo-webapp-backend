@@ -14,10 +14,12 @@ if (isset($_POST['action'])) {
     check_permissions($user_id);
 
     $response = match ($_POST['action']) {
+        'create_project' => 'Not implemented',
         'get_user_projects' => json_encode($todo_db->get_user_projects()),
         'get_project', 'get_tasks' => json_encode($todo_db->get_tasks(
             intval($_POST['projectId'])
         )),
+        'delete_project' => 'Not implemented',
         'create_task' => json_encode(array('taskId' => $todo_db->create_task(
             intval($_POST['projectId']),
             $_POST['taskName'],
@@ -41,6 +43,7 @@ if (isset($_POST['action'])) {
         'update_task_name' => json_encode(array('wasSuccessful' => $todo_db->update_task_name(
             intval($_POST['taskId']),
             $_POST['taskName']))),
+        'delete_task' => 'Not implemented',
         default => $err_str,
     };
 
