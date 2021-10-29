@@ -73,9 +73,9 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
     }
 
     $get_ids_query =
-        "SELECT TaskId FROM ProjectTasks
+        'SELECT TaskId FROM ProjectTasks
          WHERE ProjectId = :projectId AND TaskName = :taskName AND TaskContent = :taskContent
-           AND Duration = :taskDuration AND DueDate = :taskDueDate";
+           AND Duration = :taskDuration AND DueDate = :taskDueDate';
     $bindings = [
         ':userId' => $userId,
         ':projectId' => $projectId,
@@ -100,8 +100,8 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
     try {
         $db->begin_transaction();
         $stmt = $db->create_stmt(
-            "INSERT INTO ProjectTasks(ProjectId, TaskName, TaskContent, Duration, DueDate)
-         VALUES (:projectId, :taskName, :taskContent, :taskDuration, :taskDueDate)",
+            'INSERT INTO ProjectTasks(ProjectId, TaskName, TaskContent, Duration, DueDate)
+             VALUES (:projectId, :taskName, :taskContent, :taskDuration, :taskDueDate)',
             $bindings,
         );
         $stmt->execute();
@@ -192,12 +192,10 @@ function update_task_name(Database $db, int $userId, int $taskId, string $newTas
 
 function get_user_projects(Database $db, $userId): string {
     $stmt = $db->create_stmt(
-        "SELECT ProjectId AS id, ProjectName AS name
+        'SELECT ProjectId AS id, ProjectName AS name
          FROM Project
-         WHERE Project.UserId = :userId",
-        [
-            ':userId' => $userId
-        ]
+         WHERE Project.UserId = :userId',
+        [':userId' => $userId]
     );
 
     return query_result_to_json($stmt->execute());
@@ -214,11 +212,12 @@ function get_task_owner_id(Database $db, int $taskId): ?int {
         // IDs are always >= 1
         return null;
     }
-    $stmt = $db->create_stmt('
-        SELECT UserId
-        FROM ProjectTasks T JOIN Project P on P.ProjectId = T.ProjectId
-        WHERE T.TaskId = :taskId',
-        [':taskId' => $taskId]);
+    $stmt = $db->create_stmt(
+        'SELECT UserId
+         FROM ProjectTasks T JOIN Project P on P.ProjectId = T.ProjectId
+         WHERE T.TaskId = :taskId',
+        [':taskId' => $taskId]
+    );
     // intval returns 0 on failure and on intval(null). Since all IDs in the database are greater than 0, we don't have
     // a problem distinguishing between actual ID = 0 and failure.
     return ($owner_id = intval(Database::get_first_result_row_if_exists($stmt))) > 1 ? $owner_id : null;
@@ -231,23 +230,22 @@ function get_task(Database $db, int $userId, int $taskId): ?string {
         // throw new RuntimeException('User does not own this task');
         return 'User does not own this task';
     }
-    $stmt = $db->create_stmt('
-        SELECT *
-        FROM ProjectTasks
-        WHERE TaskId=:taskId',
-        [':taskId' => $taskId]);
+    $stmt = $db->create_stmt(
+        'SELECT *
+         FROM ProjectTasks
+         WHERE TaskId=:taskId',
+        [':taskId' => $taskId]
+    );
     return Database::get_first_result_row_if_exists($stmt);
 }
 
 function get_tasks(Database $db, $userId, $projectId): string {
     $stmt = $db->create_stmt(
-        "SELECT TaskId AS id, TaskName AS name, TaskContent AS content, Duration AS duration, DueDate AS dueDate
+        'SELECT TaskId AS id, TaskName AS name, TaskContent AS content, Duration AS duration, DueDate AS dueDate
          FROM ProjectTasks JOIN Project on ProjectTasks.ProjectId = Project.ProjectId
-         WHERE ProjectTasks.ProjectId = :projectId AND UserId = :userId",
-        [
-            ':userId' => $userId,
-            ':projectId' => $projectId
-        ]);
+         WHERE ProjectTasks.ProjectId = :projectId AND UserId = :userId',
+        [':userId' => $userId, ':projectId' => $projectId]
+    );
 
     return query_result_to_json($stmt->execute());
 }
