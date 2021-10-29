@@ -213,4 +213,79 @@ class TODODatabase {
         // a problem distinguishing between actual ID = 0 and failure.
         return ($owner_id = intval(Database::get_first_result_row_if_exists($stmt))) > 1 ? $owner_id : null;
     }
+
+    private function update_task_helper_get_sql_set_stmt(?string $value, bool $should_update,
+                                                         string  $sql_column, string $binding_name): string {
+        if ($should_update && !isset($value) || empty($sql_column)) {
+            throw new InvalidArgumentException();
+        }
+        return $should_update ? "$sql_column = $binding_name" : '';
+    }
+
+    /**
+     * Generic task update function.
+     *
+     * @param int $task_id
+     * @param string|null $task_name
+     * @param string|null $task_content
+     * @param int|null $task_duration
+     * @param string|null $task_due_date
+     * @param bool $update_name
+     * @param bool $update_content
+     * @param bool $update_duration
+     * @param bool $update_due_date
+     * @return bool true if task was successfully updated.
+     */
+    public function update_task(int     $task_id,
+                                ?string $task_name, ?string $task_content, ?int $task_duration, ?string $task_due_date,
+                                bool    $update_name, bool $update_content, bool $update_duration, bool $update_due_date): bool {
+        if ($task_id < 1 ||
+            $update_name && !isset($task_name) ||
+            $update_content && !isset($task_content) ||
+            $update_duration && !isset($task_duration) ||
+            $update_due_date && !isset($task_due_date)) {
+            throw new InvalidArgumentException();
+        }
+
+        $set_name_sql = $this->update_task_helper_get_sql_set_stmt($task_name, $update_name,
+            'TaskName', ':taskName');
+        $set_content_sql = $this->update_task_helper_get_sql_set_stmt($task_content, $update_content,
+            'TaskContent', ':taskContent');
+        $set_duration_sql = $this->update_task_helper_get_sql_set_stmt($task_duration, $update_duration,
+            'Duration', ':taskDuration');
+        $set_due_date_sql = $this->update_task_helper_get_sql_set_stmt($task_due_date, $update_due_date,
+            'DueDate', ':taskDueDate');
+
+        // Update task and check if user even owns this task ID
+        $stmt = $this->db->create_stmt("
+            UPDATE ProjectTasks
+            SET $set_name_sql $set_content_sql $set_duration_sql $set_due_date_sql
+            WHERE TaskId = :taskId
+            AND EXISTS(
+                SELECT *
+                FROM ProjectTasks T
+                    JOIN Project P on P.ProjectId = T.ProjectId
+                WHERE P.UserId = :userId
+                AND T.TaskId = :taskId
+            )",
+            [
+                ':userId' => $this->user_id,
+                ':taskName' => $task_name,
+                ':taskContent' => $task_content,
+                ':taskDuration' => $task_duration,
+                ':taskDueDate' => $task_due_date,
+            ],
+        );
+
+        try {
+            $this->db->begin_transaction();
+            $stmt->execute();
+            $this->db->commit_transaction();
+
+            return true;
+        } catch (Exception) {
+            $this->db->rollback_transaction();
+        }
+        return false;
+    }
 }

@@ -28,6 +28,16 @@ if (isset($_POST['action'])) {
         'get_task' => $todo_db->get_task(
             intval($_POST['taskId'])
         ),
+        'update_task' => $todo_db->update_task(
+            intval($_POST['taskId']),
+            $_POST['taskName'] ?? null,
+            $_POST['taskContent'] ?? null,
+            intval($_POST['taskDuration'] ?? null),
+            $_POST['taskDueDate'] ?? null,
+            isset($_POST['taskName']),
+            isset($_POST['taskContent']),
+            isset($_POST['taskDuration']),
+            isset($_POST['taskDueDate'])),
         'update_task_name' => json_encode(array('wasSuccessful' => $todo_db->update_task_name(
             intval($_POST['taskId']),
             $_POST['taskName']))),
