@@ -1,6 +1,8 @@
 <?php
 require_once 'private/Database.php';
 
+class UnauthorizedException extends RuntimeException {}
+
 class TODODatabase {
     public function __construct(
         private Database $db,
@@ -26,10 +28,7 @@ class TODODatabase {
         }
         // Does the current user own the given project ID
         if ($this->user_id !== TODODatabase::get_project_owner_id($this->db, $project_id)) {
-            // Unauthorized
-            http_response_code(403);
-            // throw new RuntimeException('User does not own this project');
-            return 'User does not own this project';
+            throw new UnauthorizedException('User does not own this project');
         }
 
         $get_ids_query = '
@@ -148,9 +147,7 @@ class TODODatabase {
         // TODO either check if user owns task by if ($this->...)... or by SQL EXISTS
         // Does the current user own the given task ID
         if ($this->user_id !== TODODatabase::get_task_owner_id($this->db, $task_id)) {
-            http_response_code(403);
-            // throw new RuntimeException('User does not own this task');
-            return 'User does not own this task';
+            throw new UnauthorizedException('User does not own this task');
         }
         $stmt = $this->db->create_stmt('
             SELECT *

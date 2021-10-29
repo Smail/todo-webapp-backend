@@ -8,51 +8,60 @@ $_SESSION['user_id'] = 2;
 
 if (isset($_POST['action'])) {
     $err_str = 'Unknown action';
+    $not_impl = 'Not implemented';
     $user_id = get_current_user_id();
     $db = new Database();
     $todo_db = new TODODatabase($db, $user_id);
     check_permissions($user_id);
 
-    $response = match ($_POST['action']) {
-        'create_project' => 'Not implemented',
-        'get_user_projects' => json_encode($todo_db->get_user_projects()),
-        'get_project', 'get_tasks' => json_encode($todo_db->get_tasks(
-            intval($_POST['projectId'])
-        )),
-        'delete_project' => 'Not implemented',
-        'create_task' => json_encode(array('taskId' => $todo_db->create_task(
-            intval($_POST['projectId']),
-            $_POST['taskName'],
-            $_POST['taskContent'],
-            intval($_POST['taskDuration']),
-            $_POST['taskDueDate'],
-        ))),
-        'get_task' => $todo_db->get_task(
-            intval($_POST['taskId'])
-        ),
-        'update_task' => $todo_db->update_task(
-            intval($_POST['taskId']),
-            $_POST['taskName'] ?? null,
-            $_POST['taskContent'] ?? null,
-            intval($_POST['taskDuration'] ?? null),
-            $_POST['taskDueDate'] ?? null,
-            isset($_POST['taskName']),
-            isset($_POST['taskContent']),
-            isset($_POST['taskDuration']),
-            isset($_POST['taskDueDate'])),
-        'update_task_name' => json_encode(array('wasSuccessful' => $todo_db->update_task_name(
-            intval($_POST['taskId']),
-            $_POST['taskName']))),
-        'delete_task' => 'Not implemented',
-        default => $err_str,
-    };
+    try {
+        $response = match ($_POST['action']) {
+            'create_project' => $not_impl,
+            'get_user_projects' => json_encode($todo_db->get_user_projects()),
+            'get_project', 'get_tasks' => json_encode($todo_db->get_tasks(
+                intval($_POST['projectId'])
+            )),
+            'delete_project' => $not_impl,
+            'create_task' => json_encode(array('taskId' => $todo_db->create_task(
+                intval($_POST['projectId']),
+                $_POST['taskName'],
+                $_POST['taskContent'],
+                intval($_POST['taskDuration']),
+                $_POST['taskDueDate'],
+            ))),
+            'get_task' => $todo_db->get_task(
+                intval($_POST['taskId'])
+            ),
+            'update_task' => $todo_db->update_task(
+                intval($_POST['taskId']),
+                $_POST['taskName'] ?? null,
+                $_POST['taskContent'] ?? null,
+                intval($_POST['taskDuration'] ?? null),
+                $_POST['taskDueDate'] ?? null,
+                isset($_POST['taskName']),
+                isset($_POST['taskContent']),
+                isset($_POST['taskDuration']),
+                isset($_POST['taskDueDate'])),
+            'update_task_name' => json_encode(array('wasSuccessful' => $todo_db->update_task_name(
+                intval($_POST['taskId']),
+                $_POST['taskName']))),
+            'delete_task' => $not_impl,
+            default => $err_str,
+        };
 
-    if ($response === $err_str) {
-        // Send 400 Bad Request
-        http_response_code(400);
+        if ($response === $err_str) {
+            // Send 400 Bad Request
+            http_response_code(400);
+        } elseif ($response === $not_impl) {
+            http_response_code(503);
+        }
+
+        echo $response;
+    } catch (UnauthorizedException $e) {
+        // HTTP code for unauthorized
+        http_response_code(403);
+        echo $e->getMessage();
     }
-
-    echo $response;
 } else {
     http_response_code(400);
     echo "'action' was not defined";
