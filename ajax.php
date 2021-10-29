@@ -12,15 +12,18 @@ if (isset($_POST['action'])) {
         'get_all_projects', 'get_user_projects' => get_user_projects($db, $_SESSION['user_id']),
         'get_project' => get_project($db, $_SESSION['user_id'], $_POST['projectId']),
         'get_tasks' => get_tasks($db, $_SESSION['user_id'], $_POST['projectId']),
-        'update_task_name' => update_task_name($db, $_SESSION['user_id'], $_POST['taskId'], $_POST['taskName']),
-        'create_task' => create_task($db,
+        'update_task_name' => json_encode(array('wasSuccessful' => update_task_name($db,
+            $userId = $_SESSION['user_id'],
+            $taskId = $_POST['taskId'],
+            $newTaskName = $_POST['taskName']))),
+        'create_task' => json_encode(array('taskId' => create_task($db,
             $userId = $_SESSION['user_id'],
             $projectId = $_POST['projectId'],
             $taskName = $_POST['taskName'],
             $taskContent = $_POST['taskContent'],
             $taskDuration = $_POST['taskDuration'],
             $taskDueDate = $_POST['taskDueDate'],
-        ),
+        ))),
         default => $unknownAction,
     };
 
@@ -124,7 +127,7 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
         $length = count($diff);
         if ($length === 1) {
             $db->commit_transaction();
-            return json_encode($diff);
+            return array_pop($diff);
         } else {
             throw new RuntimeException('Concurrent insert or delete');
         }
