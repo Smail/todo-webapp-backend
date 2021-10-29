@@ -9,10 +9,10 @@ class Database {
         $this->db->enableExceptions(true);
     }
 
-    public function create_stmt(string $query, array $valueBindings): SQLite3Stmt {
+    public function create_stmt(string $query, array $value_bindings): SQLite3Stmt {
         $stmt = $this->db->prepare($query);
 
-        foreach ($valueBindings as $key => $value) {
+        foreach ($value_bindings as $key => $value) {
             if (!str_starts_with($key, ':')) {
                 $key = ':' . $key;
             }
