@@ -6,29 +6,30 @@ require_once 'private/Database.php';
 $_SESSION['user_id'] = 2;
 
 if (isset($_POST['action'])) {
-    $unknownAction = 'Unknown action';
+    $err_str = 'Unknown action';
+    $user_id = get_current_user_id();
     $db = new Database();
     $response = match ($_POST['action']) {
-        'get_user_projects' => json_encode(get_user_projects($db, $_SESSION['user_id'])),
-        'get_project' => get_project($db, $_SESSION['user_id'], $_POST['projectId']),
-        'get_task' => get_task($db, $_SESSION['user_id'], $_POST['taskId']),
-        'get_tasks' => json_encode(get_tasks($db, $_SESSION['user_id'], $_POST['projectId'])),
+        'get_user_projects' => json_encode(get_user_projects($db, $user_id)),
+        'get_project' => get_project($db, $user_id, $_POST['projectId']),
+        'get_task' => get_task($db, $user_id, $_POST['taskId']),
+        'get_tasks' => json_encode(get_tasks($db, $user_id, $_POST['projectId'])),
         'update_task_name' => json_encode(array('wasSuccessful' => update_task_name($db,
-            $userId = $_SESSION['user_id'],
+            $userId = $user_id,
             $taskId = $_POST['taskId'],
             $newTaskName = $_POST['taskName']))),
         'create_task' => json_encode(array('taskId' => create_task($db,
-            $userId = $_SESSION['user_id'],
+            $userId = $user_id,
             $projectId = $_POST['projectId'],
             $taskName = $_POST['taskName'],
             $taskContent = $_POST['taskContent'],
             $taskDuration = $_POST['taskDuration'],
             $taskDueDate = $_POST['taskDueDate'],
         ))),
-        default => $unknownAction,
+        default => $err_str,
     };
 
-    if ($response === $unknownAction) {
+    if ($response === $err_str) {
         // Send 400 Bad Request
         http_response_code(400);
     }
@@ -197,7 +198,7 @@ function update_task_name(Database $db, int $user_id, int $task_id, string $new_
     return false;
 }
 
-function get_user_projects(Database $db, $user_id): array {
+function get_user_projects(Database $db, int $user_id): array {
     $stmt = $db->create_stmt(
         'SELECT ProjectId AS id, ProjectName AS name
          FROM Project
@@ -207,7 +208,7 @@ function get_user_projects(Database $db, $user_id): array {
     return Database::fetch_all($stmt->execute(), SQLITE3_ASSOC);
 }
 
-function get_project(Database $db, $user_id, $project_id): string {
+function get_project(Database $db, int $user_id, int $project_id): string {
     // Not implemented yet response code
     http_response_code(501);
     return '';
@@ -245,7 +246,7 @@ function get_task(Database $db, int $user_id, int $task_id): ?string {
     return Database::get_first_result_row_if_exists($stmt);
 }
 
-function get_tasks(Database $db, $user_id, $project_id): array {
+function get_tasks(Database $db, int $user_id, int $project_id): array {
     $stmt = $db->create_stmt(
         'SELECT TaskId AS id, TaskName AS name, TaskContent AS content, Duration AS duration, DueDate AS dueDate
          FROM ProjectTasks JOIN Project on ProjectTasks.ProjectId = Project.ProjectId
