@@ -59,9 +59,6 @@ function is_string_empty(?string $str): bool {
  */
 function create_task(Database $db, int $userId, int $projectId, string $taskName,
                      string   $taskContent = '', string $taskDuration = '', string $taskDueDate = ''): ?string {
-    if ($userId < 1) {
-        throw new InvalidArgumentException('User ID is less than 1');
-    }
     if ($projectId < 1) {
         throw new InvalidArgumentException('Project ID is less than 1');
     }
@@ -69,7 +66,7 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
         throw new InvalidArgumentException('Task name cannot be empty');
     }
     // Does the current user own the given project ID
-    if (!equals_current_user_id(get_project_owner_id($db, $projectId))) {
+    if (!equals_current_user_id($userId) || $userId !== get_project_owner_id($db, $projectId)) {
         http_response_code(403);
         // throw new RuntimeException('User does not own this project');
         return 'User does not own this project';
@@ -212,7 +209,11 @@ function get_project(Database $db, $userId, $projectId): string {
     return '';
 }
 
-function get_task_owner_id(Database $db, string|int $taskId): ?int {
+function get_task_owner_id(Database $db, int $taskId): ?int {
+    if ($taskId < 1) {
+        // IDs are always >= 1
+        return null;
+    }
     $stmt = $db->create_stmt('
         SELECT UserId
         FROM ProjectTasks T JOIN Project P on P.ProjectId = T.ProjectId
@@ -223,9 +224,9 @@ function get_task_owner_id(Database $db, string|int $taskId): ?int {
     return ($owner_id = intval(Database::get_first_result_row_if_exists($stmt))) > 1 ? $owner_id : null;
 }
 
-function get_task(Database $db, string|int $taskId): ?string {
+function get_task(Database $db, int $userId, int $taskId): ?string {
     // Does the current user own the given task ID
-    if (!equals_current_user_id(get_task_owner_id($db, $taskId))) {
+    if (!equals_current_user_id($userId) || $userId !== get_task_owner_id($db, $userId)) {
         http_response_code(403);
         // throw new RuntimeException('User does not own this task');
         return 'User does not own this task';
