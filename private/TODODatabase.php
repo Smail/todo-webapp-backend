@@ -244,6 +244,10 @@ class TODODatabase {
             throw new InvalidArgumentException();
         }
 
+        if ($this->user_id !== TODODatabase::get_task_owner_id($this->db, $task_id)) {
+            throw new UnauthorizedException('User does not own this task');
+        }
+
         $set_name_sql = $this->update_task_helper_get_sql_set_stmt($task_name, $update_name,
             'TaskName', ':taskName');
         $set_content_sql = $this->update_task_helper_get_sql_set_stmt($task_content, $update_content,
