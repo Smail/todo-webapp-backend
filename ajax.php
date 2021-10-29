@@ -40,7 +40,14 @@ if (isset($_POST['action'])) {
 }
 
 function equals_current_user_id(?int $user_id): bool {
-    return !empty($_SESSION['user_id']) && !empty($user_id) && $_SESSION['user_id'] === $user_id;
+    return !empty($user_id) && $user_id === get_current_user_id();
+}
+
+function get_current_user_id(): int {
+    if (!empty($_SESSION['user_id']) && $user_id = intval($_SESSION['user_id']) > 0) {
+        return $user_id;
+    }
+    throw new RuntimeException('Could not determine current user\'s ID');
 }
 
 function is_string_empty(?string $str): bool {
