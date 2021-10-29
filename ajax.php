@@ -9,10 +9,10 @@ if (isset($_POST['action'])) {
     $unknownAction = 'Unknown action';
     $db = new Database();
     $response = match ($_POST['action']) {
-        'get_user_projects' => get_user_projects($db, $_SESSION['user_id']),
+        'get_user_projects' => json_encode(get_user_projects($db, $_SESSION['user_id'])),
         'get_project' => get_project($db, $_SESSION['user_id'], $_POST['projectId']),
         'get_task' => get_task($db, $_SESSION['user_id'], $_POST['taskId']),
-        'get_tasks' => get_tasks($db, $_SESSION['user_id'], $_POST['projectId']),
+        'get_tasks' => json_encode(get_tasks($db, $_SESSION['user_id'], $_POST['projectId'])),
         'update_task_name' => json_encode(array('wasSuccessful' => update_task_name($db,
             $userId = $_SESSION['user_id'],
             $taskId = $_POST['taskId'],
@@ -190,15 +190,14 @@ function update_task_name(Database $db, int $user_id, int $task_id, string $new_
     return false;
 }
 
-function get_user_projects(Database $db, $user_id): string {
+function get_user_projects(Database $db, $user_id): array {
     $stmt = $db->create_stmt(
         'SELECT ProjectId AS id, ProjectName AS name
          FROM Project
          WHERE Project.UserId = :userId',
         [':userId' => $user_id]
     );
-
-    return query_result_to_json($stmt->execute());
+    return Database::fetch_all($stmt->execute(), SQLITE3_ASSOC);
 }
 
 function get_project(Database $db, $user_id, $project_id): string {
@@ -239,7 +238,7 @@ function get_task(Database $db, int $user_id, int $task_id): ?string {
     return Database::get_first_result_row_if_exists($stmt);
 }
 
-function get_tasks(Database $db, $user_id, $project_id): string {
+function get_tasks(Database $db, $user_id, $project_id): array {
     $stmt = $db->create_stmt(
         'SELECT TaskId AS id, TaskName AS name, TaskContent AS content, Duration AS duration, DueDate AS dueDate
          FROM ProjectTasks JOIN Project on ProjectTasks.ProjectId = Project.ProjectId
@@ -247,14 +246,5 @@ function get_tasks(Database $db, $user_id, $project_id): string {
         [':userId' => $user_id, ':projectId' => $project_id]
     );
 
-    return query_result_to_json($stmt->execute());
-}
-
-function query_result_to_json(SQLite3Result $result): string {
-    $arr = array();
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-        $arr[] = $row;
-    }
-
-    return json_encode($arr);
+    return Database::fetch_all($stmt->execute(), SQLITE3_ASSOC);
 }
