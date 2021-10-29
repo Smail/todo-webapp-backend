@@ -152,7 +152,9 @@ function get_project_owner_id(Database $db, int $projectId): ?int {
          WHERE ProjectId = :projectId',
         [':projectId' => $projectId],
     );
-    return ($row = $stmt->execute()?->fetchArray(SQLITE3_NUM)) ? $row[0] : null;
+    // intval returns 0 on failure and on intval(null). Since all IDs in the database are greater than 0, we don't have
+    // a problem distinguishing between actual ID = 0 and failure.
+    return ($owner_id = intval(Database::get_first_result_row_if_exists($stmt))) > 1 ? $owner_id : null;
 }
 
 function update_task_name(Database $db, int $userId, int $taskId, string $newTaskName): bool {
