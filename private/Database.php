@@ -69,4 +69,14 @@ class Database {
     public static function get_first_result_row_if_exists(SQLite3Stmt $stmt): ?string {
         return ($row = $stmt->execute()?->fetchArray(SQLITE3_NUM)) ? $row[0] : null;
     }
+
+    public static function fetch_all(SQLite3Result $result, $mode = SQLITE3_BOTH): array {
+        $arr = [];
+        if ($res = $result) {
+            while ($row = $res->fetchArray($mode)) {
+                $arr[] = $row;
+            }
+        }
+        return $arr;
+    }
 }
