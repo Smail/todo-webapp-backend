@@ -11,6 +11,7 @@ if (isset($_POST['action'])) {
     $response = match ($_POST['action']) {
         'get_user_projects' => get_user_projects($db, $_SESSION['user_id']),
         'get_project' => get_project($db, $_SESSION['user_id'], $_POST['projectId']),
+        'get_task' => get_task($db, $_SESSION['user_id'], $_POST['taskId']),
         'get_tasks' => get_tasks($db, $_SESSION['user_id'], $_POST['projectId']),
         'update_task_name' => json_encode(array('wasSuccessful' => update_task_name($db,
             $userId = $_SESSION['user_id'],
@@ -209,6 +210,32 @@ function get_project(Database $db, $userId, $projectId): string {
     // Not implemented yet response code
     http_response_code(501);
     return '';
+}
+
+function get_task_owner_id(Database $db, string|int $taskId): ?int {
+    $stmt = $db->create_stmt('
+        SELECT UserId
+        FROM ProjectTasks T JOIN Project P on P.ProjectId = T.ProjectId
+        WHERE T.TaskId = :taskId',
+        [':taskId' => $taskId]);
+    // intval returns 0 on failure and on intval(null). Since all IDs in the database are greater than 0, we don't have
+    // a problem distinguishing between actual ID = 0 and failure.
+    return ($owner_id = intval(Database::get_first_result_row_if_exists($stmt))) > 1 ? $owner_id : null;
+}
+
+function get_task(Database $db, string|int $taskId): ?string {
+    // Does the current user own the given task ID
+    if (!equals_current_user_id(get_task_owner_id($db, $taskId))) {
+        http_response_code(403);
+        // throw new RuntimeException('User does not own this task');
+        return 'User does not own this task';
+    }
+    $stmt = $db->create_stmt('
+        SELECT *
+        FROM ProjectTasks
+        WHERE TaskId=:taskId',
+        [':taskId' => $taskId]);
+    return Database::get_first_result_row_if_exists($stmt);
 }
 
 function get_tasks(Database $db, $userId, $projectId): string {
