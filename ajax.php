@@ -67,11 +67,11 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
     if (is_string_empty($taskName)) {
         throw new InvalidArgumentException('Task name cannot be empty');
     }
-    // Does current user own the project ID
+    // Does the current user own the given project ID
     if (!equals_current_user_id(get_project_owner_id($db, $projectId))) {
         http_response_code(403);
         // throw new RuntimeException('User does not own this project');
-        return null;
+        return 'User does not own this project';
     }
 
     $get_ids_query =
@@ -133,6 +133,7 @@ function create_task(Database $db, int $userId, int $projectId, string $taskName
         }
     } catch (Exception) {
         $db->rollback_transaction();
+        // Not implemented yet response code
         http_response_code(501);
         return null;
     }
