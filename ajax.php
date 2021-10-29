@@ -203,7 +203,9 @@ function get_user_projects(Database $db, $userId): string {
 }
 
 function get_project(Database $db, $userId, $projectId): string {
-    return "";
+    // Not implemented yet response code
+    http_response_code(501);
+    return '';
 }
 
 function get_tasks(Database $db, $userId, $projectId): string {
