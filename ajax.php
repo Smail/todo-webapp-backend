@@ -9,7 +9,7 @@ if (isset($_POST['action'])) {
     $unknownAction = 'Unknown action';
     $db = new Database();
     $response = match ($_POST['action']) {
-        'get_all_projects', 'get_user_projects' => get_user_projects($db, $_SESSION['user_id']),
+        'get_user_projects' => get_user_projects($db, $_SESSION['user_id']),
         'get_project' => get_project($db, $_SESSION['user_id'], $_POST['projectId']),
         'get_tasks' => get_tasks($db, $_SESSION['user_id'], $_POST['projectId']),
         'update_task_name' => json_encode(array('wasSuccessful' => update_task_name($db,
