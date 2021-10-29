@@ -15,15 +15,9 @@ if (isset($_POST['action'])) {
 
     $response = match ($_POST['action']) {
         'get_user_projects' => json_encode($todo_db->get_user_projects()),
-        'get_task' => $todo_db->get_task(
-            intval($_POST['taskId'])
-        ),
         'get_project', 'get_tasks' => json_encode($todo_db->get_tasks(
             intval($_POST['projectId'])
         )),
-        'update_task_name' => json_encode(array('wasSuccessful' => $todo_db->update_task_name(
-            intval($_POST['taskId']),
-            $_POST['taskName']))),
         'create_task' => json_encode(array('taskId' => $todo_db->create_task(
             intval($_POST['projectId']),
             $_POST['taskName'],
@@ -31,6 +25,12 @@ if (isset($_POST['action'])) {
             intval($_POST['taskDuration']),
             $_POST['taskDueDate'],
         ))),
+        'get_task' => $todo_db->get_task(
+            intval($_POST['taskId'])
+        ),
+        'update_task_name' => json_encode(array('wasSuccessful' => $todo_db->update_task_name(
+            intval($_POST['taskId']),
+            $_POST['taskName']))),
         default => $err_str,
     };
 
