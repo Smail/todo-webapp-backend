@@ -1,4 +1,9 @@
 FallbackResource index.php
+Require all denied
+
+<Files "ajax.php">
+    Require all granted
+</Files>
 
 # https://webhint.io/docs/user-guide/hints/hint-x-content-type-options/?source=devtools
 <IfModule mod_headers.c>
@@ -27,6 +32,7 @@ FallbackResource index.php
     # TODO change from * to actual origin in php 
 #    Header set Access-Control-Allow-Origin *
     Header set Access-Control-Allow-Credentials true
-#    Header set Access-Control-Allow-Headers *
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+    Header onsuccess edit Set-Cookie ^(.*)$ $1;HttpOnly;Secure;SameSite=Strict
 #     Header set Access-Control-Allow-Methods "GET, POST, PATCH"
 </IfModule>
