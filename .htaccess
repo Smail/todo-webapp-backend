@@ -25,8 +25,8 @@ FallbackResource index.php
 # CORS
 <IfModule mod_headers.c>
     # TODO change from * to actual origin in php 
-    Header set Access-Control-Allow-Origin "http://localhost:8081"
+#    Header set Access-Control-Allow-Origin *
     Header set Access-Control-Allow-Credentials true
-    Header set Access-Control-Allow-Headers *
-    # Header set Access-Control-Allow-Methods "GET, POST, PATCH"
+#    Header set Access-Control-Allow-Headers *
+#     Header set Access-Control-Allow-Methods "GET, POST, PATCH"
 </IfModule>
