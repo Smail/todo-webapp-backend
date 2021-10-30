@@ -4,14 +4,12 @@ require_once 'private/Database.php';
 require_once 'private/TODODatabase.php';
 require_once 'authorize.php';
 
-if (isset($_POST['action']) && ($token = get_token_from_header()) != null) {
-    $data = authorize_token($token);
+if (isset($_POST['action']) && ($token = get_token_from_header()) != null && ($data = authorize_token($token)) != null) {
     $user_id = $data['sub'];
     $err_str = 'Unknown action';
     $not_impl = 'Not implemented';
     $db = new Database();
     $todo_db = new TODODatabase($db, $user_id);
-    check_permissions($user_id);
 
     try {
         $response = match ($_POST['action']) {
@@ -62,38 +60,19 @@ if (isset($_POST['action']) && ($token = get_token_from_header()) != null) {
         echo $e->getMessage();
     }
 } else {
-    if (isset($_POST['action'])) {
-        // Send 401 Unauthorized
-        http_response_code(401);
-        header('WWW-Authenticate: Bearer realm = ' . $_SERVER['SERVER_NAME'] . '"/api"');
-        echo 'Token not found';
-    } else {
+    if (!isset($_POST['action'])) {
         // Send 400 Bad Request
         http_response_code(400);
         echo "'action' was not defined";
-    }
-}
-
-function equals_current_user_id(?int $user_id): bool {
-    return !empty($user_id) && $user_id === get_current_user_id();
-}
-
-function get_current_user_id(): int {
-    if (!empty($_SESSION['user_id']) && ($user_id = intval($_SESSION['user_id'])) > 0) {
-        return $user_id;
-    }
-    throw new RuntimeException('Could not determine current user\'s ID');
-}
-
-/**
- * Check if user is authorized.
- */
-function check_permissions(int $user_id, bool $should_throw = false): bool {
-    $is_user_id_valid = equals_current_user_id($user_id);
-    if ($should_throw) {
-        throw new RuntimeException('Unauthorized');
+    } else if (get_token_from_header() == null) {
+        // Send 401 Unauthorized
+        http_response_code(401);
+        header('WWW-Authenticate: Bearer realm = ' . $_SERVER['SERVER_NAME'] . '"/api"');
+        echo 'Missing token. Example: Authorization: Bearer TOKEN';
     } else {
-        return $is_user_id_valid;
+        // Send 403 Forbidden
+        http_response_code(403);
+        echo 'Invalid token';
     }
 }
 
