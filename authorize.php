@@ -10,47 +10,23 @@ $dotenv->load();
 $private_key_file_path = $_ENV['PRIVATE_KEY_PATH'];
 $passphrase = $_ENV['PRIVATE_KEY_PASSPHRASE'];
 
-function login(string $private_key_file_path, string $passphrase) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-        $unknown_action = 'Unknown action';
-        $response = $unknown_action;
-        switch ($_POST['action']) {
-            case 'create_token':
-                if (!isset($_POST['username'])) {
-                    $response = 'Username not set';
-                } else if (!isset($_POST['password'])) {
-                    $response = 'Password not set';
-                } else {
-                    $response = create_token($_POST['username'], $_POST['password'], $private_key_file_path, $passphrase);
-                    if ($response == null) {
-                        // Send 400 Bad Request
-                        http_response_code(400);
-                        // With 401 we need to send username and password with Auth header and base64 encoding
-                        // header('WWW-Authenticate: Basic realm = "' . $_SERVER['SERVER_NAME'] . '/api"');
-                    }
-                }
-                break;
-            case 'authorize':
-                if (($token = get_token_from_header()) != null) {
-                    $data = authorize_token($token);
-                } else {
-                    // Send 401 Unauthorized
-                    http_response_code(401);
-                    header('WWW-Authenticate: Bearer realm = "' . $_SERVER['SERVER_NAME'] . '/api"');
-                }
-                break;
-            default:
-                $response = $unknown_action;
-                break;
-        };
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_token') {
+    login($_POST['username'] ?? '', $_POST['password'] ?? '', $private_key_file_path, $passphrase);
+}
 
-        if ($response === $unknown_action) {
-            // Send 400 Bad Request
-            http_response_code(400);
-        }
-        echo $response;
+function login(string $username, string $password, string $private_key_file_path, string $passphrase): ?string {
+    if (is_string_empty($username)) {
+        return 'Username is empty';
+    } else if (is_string_empty($password)) {
+        return 'Password is empty';
+    } else if (($response = create_token($username, $password, $private_key_file_path, $passphrase)) != null) {
+        return $response;
     } else {
+        // Send 400 Bad Request
         http_response_code(400);
+        // With 401 we need to send username and password with Auth header and base64 encoding
+        // header('WWW-Authenticate: Basic realm = "' . $_SERVER['SERVER_NAME'] . '/api"');
+        return 'Invalid credentials';
     }
 }
 
