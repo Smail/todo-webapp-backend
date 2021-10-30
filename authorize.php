@@ -61,14 +61,13 @@ function get_token_from_header(): ?string {
     return null;
 }
 
-function authorize_token(string $token): array {
+function authorize_token(string $token): false|array {
     $public_key =
         openssl_pkey_get_details(get_private_key($_ENV['PRIVATE_KEY_PATH'], $_ENV['PRIVATE_KEY_PASSPHRASE']))['key'];
     try {
         return (array)JWT::decode($token, $public_key, array('RS256'));
-    } catch (Exception $e) {
-        echo $e->getMessage();
-        return [];
+    } catch (Exception) {
+        return false;
     }
 }
 
