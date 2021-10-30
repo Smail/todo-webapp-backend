@@ -143,14 +143,14 @@ class TODODatabase {
         return Database::fetch_all($stmt->execute(), SQLITE3_ASSOC);
     }
 
-    public function get_task(int $task_id): ?string {
+    public function get_task(int $task_id): array {
         // TODO either check if user owns task by if ($this->...)... or by SQL EXISTS
         // Does the current user own the given task ID
         if ($this->user_id !== TODODatabase::get_task_owner_id($this->db, $task_id)) {
             throw new UnauthorizedException('User does not own this task');
         }
         $stmt = $this->db->create_stmt('
-            SELECT *
+            SELECT TaskId as id, TaskName as name, TaskContent as content, Duration as duration, DueDate as dueDate
             FROM ProjectTasks
             WHERE TaskId=:taskId
                 AND EXISTS(
@@ -160,9 +160,17 @@ class TODODatabase {
                     WHERE P.UserId = :userId
                     AND T.TaskId = :taskId
                 )',
-            [':taskId' => $task_id]
+            [
+                ':userId' => $this->user_id,
+                ':taskId' => $task_id,
+            ]
         );
-        return Database::get_first_result_row_if_exists($stmt);
+
+        // If exists, return the first row. There can be only one or no row, because we filter with IDs
+        if (($res = $stmt->execute()) && ($row = $res->fetchArray(SQLITE3_ASSOC))) {
+            return $row;
+        }
+        return [];
     }
 
     public function get_tasks(int $project_id): array {
@@ -189,7 +197,7 @@ class TODODatabase {
         );
         // intval returns 0 on failure and on intval(null). Since all IDs in the database are greater than 0, we don't have
         // a problem distinguishing between actual ID = 0 and failure.
-        return ($owner_id = intval(Database::get_first_result_row_if_exists($stmt))) > 1 ? $owner_id : null;
+        return ($owner_id = intval(Database::get_result_first_row_first_column_if_exists($stmt))) > 1 ? $owner_id : null;
     }
 
     /**
@@ -208,7 +216,7 @@ class TODODatabase {
         );
         // intval returns 0 on failure and on intval(null). Since all IDs in the database are greater than 0, we don't have
         // a problem distinguishing between actual ID = 0 and failure.
-        return ($owner_id = intval(Database::get_first_result_row_if_exists($stmt))) > 1 ? $owner_id : null;
+        return ($owner_id = intval(Database::get_result_first_row_first_column_if_exists($stmt))) > 1 ? $owner_id : null;
     }
 
     private function update_task_helper_get_sql_set_stmt(?string $value, bool $should_update,
