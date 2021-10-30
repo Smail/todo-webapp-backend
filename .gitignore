@@ -4,3 +4,4 @@
 /**/.idea
 /**/*.tar
 *.log
+vendor/

@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+composer require firebase/php-jwt
+# Check if libsodium exists. It is needed for php-jwt
