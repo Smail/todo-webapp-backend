@@ -56,7 +56,7 @@ function login(string $private_key_file_path, string $passphrase) {
 
 function get_token_from_header(): ?string {
     if (($headers = apache_request_headers()) && isset($headers['Authorization'])) {
-        return empty($token = trim(str_replace('Bearer:', '', $headers['Authorization']))) ? $token : null;
+        return !empty($token = trim(str_replace('Bearer', '', $headers['Authorization']))) ? $token : null;
     }
     return null;
 }
@@ -66,7 +66,8 @@ function authorize_token(string $token): array {
         openssl_pkey_get_details(get_private_key($_ENV['PRIVATE_KEY_PATH'], $_ENV['PRIVATE_KEY_PASSPHRASE']))['key'];
     try {
         return (array)JWT::decode($token, $public_key, array('RS256'));
-    } catch (Exception) {
+    } catch (Exception $e) {
+        echo $e->getMessage();
         return [];
     }
 }
