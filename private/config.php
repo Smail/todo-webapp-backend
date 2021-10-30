@@ -8,6 +8,6 @@ session_start();
 
 header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
 
-function is_logged_in(): bool {
-    return (isset($_SESSION['is_logged_in']) && $_SESSION['is_logged_in']);
+function is_string_empty(?string $str): bool {
+    return !isset($str) || $str == null || strlen(trim($str)) === 0;
 }

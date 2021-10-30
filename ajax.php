@@ -4,7 +4,6 @@ require_once 'private/Database.php';
 require_once 'private/TODODatabase.php';
 require_once 'authorize.php';
 
-
 if (!isset($_POST['action'])) {
     // Send 400 Bad Request
     http_response_code(400);
@@ -77,8 +76,4 @@ if (!isset($_POST['action'])) {
         http_response_code(403);
         echo 'Invalid token';
     }
-}
-
-function is_string_empty(?string $str): bool {
-    return !isset($str) || $str == null || strlen(trim($str)) === 0;
 }
