@@ -29,9 +29,9 @@ if (isset($_POST['action'])) {
                 intval($_POST['taskDuration']),
                 $_POST['taskDueDate'],
             )]),
-            'get_task' => $todo_db->get_task(
+            'get_task' => json_encode($todo_db->get_task(
                 intval($_POST['taskId'])
-            ),
+            )),
             'update_task' => json_encode(['wasSuccessful' => $todo_db->update_task(
                 intval($_POST['taskId']),
                 $_POST['taskName'] ?? null,
