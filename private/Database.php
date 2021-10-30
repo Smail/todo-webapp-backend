@@ -66,7 +66,7 @@ class Database {
         return $escaped_strings;
     }
 
-    public static function get_result_first_row_first_column_if_exists(SQLite3Stmt $stmt): ?string {
+    public static function get_result_first_column_if_exists(SQLite3Stmt $stmt): ?string {
         return ($row = $stmt->execute()?->fetchArray(SQLITE3_NUM)) ? $row[0] : null;
     }
 

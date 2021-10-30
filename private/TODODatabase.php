@@ -1,7 +1,8 @@
 <?php
 require_once 'private/Database.php';
 
-class UnauthorizedException extends RuntimeException {}
+class UnauthorizedException extends RuntimeException {
+}
 
 class TODODatabase {
     public function __construct(
@@ -197,7 +198,7 @@ class TODODatabase {
         );
         // intval returns 0 on failure and on intval(null). Since all IDs in the database are greater than 0, we don't have
         // a problem distinguishing between actual ID = 0 and failure.
-        return ($owner_id = intval(Database::get_result_first_row_first_column_if_exists($stmt))) > 1 ? $owner_id : null;
+        return ($owner_id = intval(Database::get_result_first_column_if_exists($stmt))) > 1 ? $owner_id : null;
     }
 
     /**
@@ -216,7 +217,7 @@ class TODODatabase {
         );
         // intval returns 0 on failure and on intval(null). Since all IDs in the database are greater than 0, we don't have
         // a problem distinguishing between actual ID = 0 and failure.
-        return ($owner_id = intval(Database::get_result_first_row_first_column_if_exists($stmt))) > 1 ? $owner_id : null;
+        return ($owner_id = intval(Database::get_result_first_column_if_exists($stmt))) > 1 ? $owner_id : null;
     }
 
     private function update_task_helper_get_sql_set_stmt(?string $value, bool $should_update,
@@ -297,5 +298,23 @@ class TODODatabase {
             $this->db->rollback_transaction();
         }
         return false;
+    }
+
+    public static function are_credentials_valid(Database $db, string $username, string $password_hash): bool {
+        $stmt = $db->create_stmt('
+            SELECT COUNT(*) FROM User WHERE Username = :username AND PasswordHash = :hash',
+            [':username' => $username, ':hash' => $password_hash],
+        );
+        // There must always be a query result, due to COUNT(*). There can either be exactly one entry or none
+        return intval(Database::get_result_first_column_if_exists($stmt)) === 1;
+    }
+
+    public static function get_password_hash_of_user(Database $db, string $username): string {
+        $stmt = $db->create_stmt('
+            SELECT PasswordHash FROM User WHERE Username = :username',
+            [':username' => $username, ':hash' => $password_hash],
+        );
+        // There must always be a query result, due to COUNT(*). There can either be exactly one entry or none
+        return intval(Database::get_result_first_column_if_exists($stmt)) === 1;
     }
 }
