@@ -16,22 +16,6 @@ function get_private_key_passphrase(): string {
     return $_ENV['PRIVATE_KEY_PASSPHRASE'];
 }
 
-function login(string $username, string $password, string $private_key_file_path, string $passphrase): ?string {
-    if (is_string_empty($username)) {
-        return 'Username is empty';
-    } else if (is_string_empty($password)) {
-        return 'Password is empty';
-    } else if (($response = create_token($username, $password, $private_key_file_path, $passphrase)) != null) {
-        return $response;
-    } else {
-        // Send 400 Bad Request
-        http_response_code(400);
-        // With 401 we need to send username and password with Auth header and base64 encoding
-        // header('WWW-Authenticate: Basic realm = "' . $_SERVER['SERVER_NAME'] . '/api"');
-        return 'Invalid credentials';
-    }
-}
-
 function get_token_from_header(): ?string {
     if (($headers = apache_request_headers()) && isset($headers['Authorization'])) {
         return !empty($token = trim(str_replace('Bearer', '', $headers['Authorization']))) ? $token : null;

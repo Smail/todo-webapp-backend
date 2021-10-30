@@ -9,7 +9,7 @@ if (!isset($_POST['action'])) {
     http_response_code(400);
     echo "'action' was not defined";
 } else if ($_POST['action'] === 'create_token') {
-    login($_POST['username'] ?? '', $_POST['password'] ?? '', get_private_key_path(), get_private_key_passphrase());
+    echo login($_POST['username'] ?? '', $_POST['password'] ?? '', get_private_key_path(), get_private_key_passphrase());
 } else if (($token = get_token_from_header()) != null && ($data = authorize_token($token)) != null) {
     $user_id = $data['sub'];
     $err_str = 'Unknown action';
@@ -75,5 +75,21 @@ if (!isset($_POST['action'])) {
         // Send 403 Forbidden
         http_response_code(403);
         echo 'Invalid token';
+    }
+}
+
+function login(string $username, string $password, string $private_key_file_path, string $passphrase): ?string {
+    if (is_string_empty($username)) {
+        return 'Username is empty';
+    } else if (is_string_empty($password)) {
+        return 'Password is empty';
+    } else if (($response = create_token($username, $password, $private_key_file_path, $passphrase)) != null) {
+        return $response;
+    } else {
+        // Send 400 Bad Request
+        http_response_code(400);
+        // With 401 we need to send username and password with Auth header and base64 encoding
+        // header('WWW-Authenticate: Basic realm = "' . $_SERVER['SERVER_NAME'] . '/api"');
+        return 'Invalid credentials';
     }
 }
