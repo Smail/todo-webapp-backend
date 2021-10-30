@@ -7,11 +7,13 @@ use Dotenv\Dotenv;
 
 $dotenv = Dotenv::createImmutable('/var/www/api.todo.smail.de'); // TODO Document root
 $dotenv->load();
-$private_key_file_path = $_ENV['PRIVATE_KEY_PATH'];
-$passphrase = $_ENV['PRIVATE_KEY_PASSPHRASE'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_token') {
-    login($_POST['username'] ?? '', $_POST['password'] ?? '', $private_key_file_path, $passphrase);
+function get_private_key_path(): string {
+    return $_ENV['PRIVATE_KEY_PATH'];
+}
+
+function get_private_key_passphrase(): string {
+    return $_ENV['PRIVATE_KEY_PASSPHRASE'];
 }
 
 function login(string $username, string $password, string $private_key_file_path, string $passphrase): ?string {

@@ -4,7 +4,14 @@ require_once 'private/Database.php';
 require_once 'private/TODODatabase.php';
 require_once 'authorize.php';
 
-if (isset($_POST['action']) && ($token = get_token_from_header()) != null && ($data = authorize_token($token)) != null) {
+
+if (!isset($_POST['action'])) {
+    // Send 400 Bad Request
+    http_response_code(400);
+    echo "'action' was not defined";
+} else if ($_POST['action'] === 'create_token') {
+    login($_POST['username'] ?? '', $_POST['password'] ?? '', get_private_key_path(), get_private_key_passphrase());
+} else if (($token = get_token_from_header()) != null && ($data = authorize_token($token)) != null) {
     $user_id = $data['sub'];
     $err_str = 'Unknown action';
     $not_impl = 'Not implemented';
@@ -60,11 +67,7 @@ if (isset($_POST['action']) && ($token = get_token_from_header()) != null && ($d
         echo $e->getMessage();
     }
 } else {
-    if (!isset($_POST['action'])) {
-        // Send 400 Bad Request
-        http_response_code(400);
-        echo "'action' was not defined";
-    } else if (get_token_from_header() == null) {
+    if (get_token_from_header() == null) {
         // Send 401 Unauthorized
         http_response_code(401);
         header('WWW-Authenticate: Bearer realm = ' . $_SERVER['SERVER_NAME'] . '"/api"');
