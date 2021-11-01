@@ -57,6 +57,10 @@ class Database {
         return $this->db;
     }
 
+    public static function escape_string(string $str): string {
+        return SQLite3::escapeString($str);
+    }
+
     public static function escape_strings(array $strings): array {
         $escaped_strings = [];
         foreach ($strings as $str) {
