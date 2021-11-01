@@ -41,17 +41,16 @@ class Database {
         $this->begin_transaction();
 
         try {
-            $res = $this->db->exec($query);
-            if ($res) {
+            if ($this->db->exec($query)) {
                 $this->commit_transaction();
                 return true;
+            } else {
+                throw new RuntimeException('Could not exec statement');
             }
-
+        } catch (Exception $e) {
             $this->rollback_transaction();
-        } catch (Exception) {
-            $this->rollback_transaction();
+            throw new RuntimeException($e->getMessage());
         }
-        return false;
     }
 
     public function get_db(): SQLite3 {
