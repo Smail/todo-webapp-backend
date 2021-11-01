@@ -338,7 +338,7 @@ class TODODatabase {
 
             if (($user_id = Database::get_result_first_column_if_exists($stmt)) == null) {
                 throw new RuntimeException('Could not retrieve ID of newly created user. Rollback');
-            } elseif (!is_numeric($user_id) || ($res = intval($user_id)) < 1) {
+            } elseif (!is_numeric($user_id) || ($user_id = intval($user_id)) < 1) {
                 throw new RuntimeException('Created user ID is not an int or not in valid range');
             }
 
