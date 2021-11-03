@@ -396,7 +396,7 @@ class TODODatabase {
 
         if ($delete_permanently) {
             if ($this->user_id === TODODatabase::get_task_owner_id($this->db, $task_id)) {
-                return $this->db->exec('DELETE FROM ProjectTasks WHERE TaskId = $task_id');
+                return $this->db->exec("DELETE FROM ProjectTasks WHERE TaskId = $task_id");
             } else {
                 throw new UnauthorizedException('User does not own this task');
             }
