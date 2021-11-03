@@ -185,6 +185,26 @@ class TODODatabase {
         return Database::fetch_all($stmt->execute(), SQLITE3_ASSOC);
     }
 
+    public function move_task(int $task_id, int $new_project_id): bool {
+        if ($this->user_id !== TODODatabase::get_task_owner_id($this->db, $task_id)) {
+            throw new InvalidArgumentException('User does not own this task');
+        } elseif ($task_id < 1) {
+            throw new InvalidArgumentException('Invalid task ID range');
+        } elseif ($new_project_id < 1) {
+            throw new InvalidArgumentException('Invalid project ID range');
+        }
+
+        $stmt = $this->db->create_stmt('
+                UPDATE ProjectTasks
+                SET ProjectId=:newProjectId
+                WHERE TaskId=:taskId AND EXISTS(
+                    SELECT UserId FROM Project
+                    WHERE Project.UserId = :userId AND Project.ProjectId = :newProjectId)',
+            [':userId' => $this->user_id, ':taskId' => $task_id, ':newProjectId' => $new_project_id]);
+
+        return $this->db->update_one_row($stmt);
+    }
+
     public static function get_task_owner_id(Database $db, int $task_id): ?int {
         if ($task_id < 1) {
             // IDs are always >= 1
@@ -399,24 +419,7 @@ class TODODatabase {
                     SELECT ProjectId FROM Project WHERE UserId = :userId AND lower(ProjectName) = 'deleted')
             ", [':userId' => $this->user_id, ':taskId' => $task_id]);
 
-            $this->db->begin_transaction();
-
-            if ($stmt->execute()) {
-                $num_affected_rows = $this->db->get_db()->changes();
-                if ($num_affected_rows > 1) {
-                    $this->db->rollback_transaction();
-                    throw new RuntimeException("Tried to update more than one row, which is not possible. Rollback");
-                }
-
-                $this->db->commit_transaction();
-                // Return true if a task was deleted and false if no task was deleted. 0 implicates any unknown ID
-                // (user or task ID) or unauthorized access
-                return $num_affected_rows == 1;
-            } else {
-                $this->db->rollback_transaction();
-                // Should never happen since $stmt is an UPDATE and is always successful, but maybe just affect 0 rows
-                throw new RuntimeException("UPDATE failed. Unknown error");
-            }
+            return $this->db->update_one_row($stmt);
         }
     }
 }

@@ -53,6 +53,30 @@ class Database {
         }
     }
 
+    public function update_one_row(SQLite3Stmt $stmt, bool $should_throw = true): bool {
+        $this->begin_transaction();
+
+        if ($stmt->execute()) {
+            $num_affected_rows = $this->get_db()->changes();
+            if ($num_affected_rows > 1) {
+                $this->rollback_transaction();
+
+                if ($should_throw) {
+                    throw new RuntimeException("Tried to update more than one row, which is not possible. Rollback");
+                } else {
+                    return false;
+                }
+            }
+
+            $this->commit_transaction();
+            return $num_affected_rows == 1;
+        } else {
+            $this->rollback_transaction();
+            // Should never happen since $stmt is an UPDATE and is always successful, but maybe just affect 0 rows
+            throw new RuntimeException("UPDATE failed. Unknown error");
+        }
+    }
+
     public function get_db(): SQLite3 {
         return $this->db;
     }

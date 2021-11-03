@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $response = match ($_POST['action']) {
                 'create_project' => $not_impl,
                 'get_user_projects' => json_encode($todo_db->get_user_projects()),
-                'get_project', 'get_tasks' => json_encode($todo_db->get_tasks(
+                'get_tasks', 'get_project' => json_encode($todo_db->get_tasks(
                     intval($_POST['projectId'])
                 )),
                 'delete_project' => $not_impl,
@@ -36,6 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'get_task' => json_encode($todo_db->get_task(
                     intval($_POST['taskId'])
                 )),
+                'move_task' => json_encode(['wasSuccessful' => $todo_db->move_task(
+                    intval($_POST['taskId']),
+                    $_POST['newProjectId'])
+                ]),
                 'update_task' => json_encode(['wasSuccessful' => $todo_db->update_task(
                     intval($_POST['taskId']),
                     $_POST['taskName'] ?? null,
@@ -45,13 +49,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     isset($_POST['taskName']),
                     isset($_POST['taskContent']),
                     isset($_POST['taskDuration']),
-                    isset($_POST['taskDueDate']))]),
+                    isset($_POST['taskDueDate']))
+                ]),
                 'update_task_name' => json_encode(['wasSuccessful' => $todo_db->update_task_name(
                     intval($_POST['taskId']),
-                    $_POST['taskName'])]),
+                    $_POST['taskName'])
+                ]),
                 'delete_task' => json_encode(['wasSuccessful' => $todo_db->delete_task(
                     intval($_POST['taskId']),
-                    filter_var($_POST['deletePermanently'], FILTER_VALIDATE_BOOLEAN) ?? false)]),
+                    filter_var($_POST['deletePermanently'], FILTER_VALIDATE_BOOLEAN) ?? false)
+                ]),
                 default => $err_str,
             };
 
