@@ -372,15 +372,6 @@ class TODODatabase {
         return intval(Database::get_result_first_column_if_exists($stmt)) === 1;
     }
 
-    public static function get_password_hash_of_user(Database $db, string $username): string {
-        $stmt = $db->create_stmt('
-            SELECT PasswordHash FROM User WHERE Username = :username',
-            [':username' => $username, ':hash' => $password_hash],
-        );
-        // There must always be a query result, due to COUNT(*). There can either be exactly one entry or none
-        return intval(Database::get_result_first_column_if_exists($stmt)) === 1;
-    }
-
     /**
      * Deletes a task permanently from the database or moves it into the 'Deleted' project.
      *
