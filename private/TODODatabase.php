@@ -1,5 +1,5 @@
 <?php
-require_once 'private/Database.php';
+require_once 'Database.php';
 
 class UnauthorizedException extends RuntimeException {
 }
