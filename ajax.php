@@ -49,7 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'update_task_name' => json_encode(['wasSuccessful' => $todo_db->update_task_name(
                     intval($_POST['taskId']),
                     $_POST['taskName'])]),
-                'delete_task' => $not_impl,
+                'delete_task' => json_encode(['wasSuccessful' => $todo_db->delete_task(
+                    intval($_POST['taskId']),
+                    filter_var($_POST['deletePermanently'], FILTER_VALIDATE_BOOLEAN) ?? false)]),
                 default => $err_str,
             };
 

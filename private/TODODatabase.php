@@ -380,4 +380,52 @@ class TODODatabase {
         // There must always be a query result, due to COUNT(*). There can either be exactly one entry or none
         return intval(Database::get_result_first_column_if_exists($stmt)) === 1;
     }
+
+    /**
+     * Deletes a task permanently from the database or moves it into the 'Deleted' project.
+     *
+     * @param int $task_id task to delete
+     * @param bool $delete_permanently true: delete from database completely. false: move task into 'Deleted' project.
+     * @return bool Return true if a task was successfully deleted and false if no task was deleted.
+     * False would also be returned if unauthorized access occurred.
+     */
+    public function delete_task(int $task_id, bool $delete_permanently = false): bool {
+        if ($task_id < 1) {
+            throw new InvalidArgumentException('Invalid ID: ' . $task_id);
+        }
+
+        if ($delete_permanently) {
+            if ($this->user_id !== TODODatabase::get_task_owner_id($this->db, $task_id)) {
+                return $this->db->exec('DELETE FROM ProjectTasks WHERE TaskId = $task_id');
+            } else {
+                throw new UnauthorizedException('User does not own this task');
+            }
+        } else {
+            $stmt = $this->db->create_stmt("
+                UPDATE ProjectTasks
+                SET ProjectId=(SELECT ProjectId FROM Project WHERE UserId = :userId AND lower(ProjectName) = 'deleted')
+                WHERE TaskId=:taskId AND EXISTS(
+                    SELECT ProjectId FROM Project WHERE UserId = :userId AND lower(ProjectName) = 'deleted')
+            ", [':userId' => $this->user_id, ':taskId' => $task_id]);
+
+            $this->db->begin_transaction();
+
+            if ($stmt->execute()) {
+                $num_affected_rows = $this->db->get_db()->changes();
+                if ($num_affected_rows > 1) {
+                    $this->db->rollback_transaction();
+                    throw new RuntimeException("Tried to update more than one row, which is not possible. Rollback");
+                }
+
+                $this->db->commit_transaction();
+                // Return true if a task was deleted and false if no task was deleted. 0 implicates any unknown ID
+                // (user or task ID) or unauthorized access
+                return $num_affected_rows == 1;
+            } else {
+                $this->db->rollback_transaction();
+                // Should never happen since $stmt is an UPDATE and is always successful, but maybe just affect 0 rows
+                throw new RuntimeException("UPDATE failed. Unknown error");
+            }
+        }
+    }
 }
