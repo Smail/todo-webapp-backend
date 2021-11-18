@@ -98,10 +98,10 @@ app.post("/login", (req, res) => {
 app.get("/verify", retrieveToken, (req, res) => {
     const cert = fs.readFileSync("keys/token_rs256.pub");
     jwt.verify(req.token, cert, function (err, decoded) {
-        if (err) {
-            res.sendStatus(403);
-        } else {
+        if (!err) {
             res.send(decoded);
+        } else {
+            res.sendStatus(403);
         }
     });
 });
