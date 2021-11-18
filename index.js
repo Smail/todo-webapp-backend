@@ -135,6 +135,21 @@ app.get("/projects/:projectId/tasks", retrieveToken, (req, res) => {
     });
 });
 
+app.post("/projects/:projectId/task/", retrieveToken, (req, res) => {
+    const cert = fs.readFileSync("keys/token_rs256.pub");
+    jwt.verify(req.token, cert, function (err, decoded) {
+        if (!err) {
+            const userId = decoded.userId;
+            // TODO add to db
+            res.send({
+                id: Math.floor(Math.random() * 100000) + 50,
+            });
+        } else {
+            res.sendStatus(403);
+        }
+    });
+});
+
 app.listen(
     PORT,
     () => console.log(`Server alive on http://localhost:${PORT}`)
