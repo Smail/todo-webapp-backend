@@ -33,7 +33,7 @@ function createToken(username, password) {
     }, {algorithm: "RS256"});
 }
 
-function verifyToken(req, res, next) {
+function retrieveToken(req, res, next) {
     const bearerHeader = req.headers["authorization"];
 
     if (typeof (bearerHeader) === "string") {
@@ -92,7 +92,7 @@ app.post("/login", (req, res) => {
 });
 
 // Return all cards from the deck
-app.get("/verify", verifyToken, (req, res) => {
+app.get("/verify", retrieveToken, (req, res) => {
     const cert = fs.readFileSync("keys/token_rs256.pub");
     jwt.verify(req.token, cert, function (err, decoded) {
         if (err) {
