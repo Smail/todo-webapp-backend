@@ -157,5 +157,5 @@ app.post("/projects/:projectId/task/", retrieveToken, (req, res) => {
 
 app.listen(
     PORT,
-    () => console.log(`Server alive on http://localhost:${PORT}`)
+    () => console.log(`Server alive at http://localhost:${PORT}`)
 );
