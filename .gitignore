@@ -105,3 +105,6 @@ dist
 
 # IntelliJ / WebStorm
 .idea/
+
+# Private / public keys
+keys/

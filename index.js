@@ -1,4 +1,6 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
+const fs = require("fs");
 const app = express();
 const PORT = 8090;
 
@@ -7,20 +9,98 @@ app.use(express.json());
 // Add headers before the routes are defined
 app.use(function (req, res, next) {
     // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8081');
+    res.setHeader("Access-Control-Allow-Origin", "http://localhost:8081");
 
     // Request methods you wish to allow
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
 
     // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization");
 
     // Set to true if you need the website to include cookies in the requests sent
     // to the API (e.g. in case you use sessions)
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader("Access-Control-Allow-Credentials", "true");
 
     // Pass to next layer of middleware
     next();
+});
+
+function createToken(username, password) {
+    const privateKey = fs.readFileSync("keys/token_rs256");
+    return jwt.sign({username: username}, {
+        key: privateKey,
+        passphrase: process.env.PASSPHRASE
+    }, {algorithm: "RS256"});
+}
+
+function verifyToken(req, res, next) {
+    const bearerHeader = req.headers["authorization"];
+
+    if (typeof (bearerHeader) === "string") {
+        const split = bearerHeader.split(" ", 2);
+
+        if (split.length === 2 && split[0].toLowerCase() === "bearer") {
+            req.token = split[1];
+            next();
+        } else {
+            res.setHeader("WWW-Authenticate", "Bearer");
+            res.status(401).send("Bearer announced but no token was provided");
+        }
+    } else {
+        res.setHeader("WWW-Authenticate", "Bearer");
+        res.sendStatus(401);
+    }
+}
+
+// Return all cards from the deck
+app.post("/login", (req, res) => {
+    const basicHeader = req.headers["authorization"];
+    let username = "";
+    let password = "";
+
+    if (typeof (basicHeader) === "string") {
+        const split = basicHeader.split(" ", 2);
+
+        if (split.length === 2 && split[0].toLowerCase() === "basic") {
+            const credentialsBase64 = split[1];
+            // Schema: username:password
+            const credentialsEncoded = Buffer.from(credentialsBase64, 'base64').toString('utf-8');
+            const credentials = credentialsEncoded.split(":");
+
+            if (credentials != null && credentials.length === 2 &&
+                credentials[0].length > 0 && credentials[1].length > 0) {
+                username = credentials[0];
+                password = credentials[1];
+            } else {
+                res.setHeader("WWW-Authenticate", 'Basic realm="Login / Token generation"');
+                res.status(401).send("Username or password was not provided");
+                return;
+            }
+        }
+    }
+
+    if (typeof (username) === "string" && typeof (password) === "string" && username.length) {
+        try {
+            res.send({token: createToken(username, password)});
+        } catch (e) {
+            res.sendStatus(500);
+        }
+    } else {
+        res.setHeader("WWW-Authenticate", 'Basic realm="Token generation"');
+        res.status(401).send("Username or password was not provided");
+    }
+});
+
+// Return all cards from the deck
+app.get("/verify", verifyToken, (req, res) => {
+    const cert = fs.readFileSync("keys/token_rs256.pub");
+    jwt.verify(req.token, cert, function (err, decoded) {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            res.send(decoded);
+        }
+    });
 });
 
 app.listen(
