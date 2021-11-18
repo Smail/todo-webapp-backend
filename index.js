@@ -118,6 +118,23 @@ app.get("/projects", retrieveToken, (req, res) => {
     });
 });
 
+app.get("/projects/:projectId/tasks", retrieveToken, (req, res) => {
+    const cert = fs.readFileSync("keys/token_rs256.pub");
+    jwt.verify(req.token, cert, function (err, decoded) {
+        if (!err) {
+            const userId = decoded.userId;
+            res.send([
+                {
+                    id: 1,
+                    name: "My first task",
+                }
+            ]);
+        } else {
+            res.sendStatus(403);
+        }
+    });
+});
+
 app.listen(
     PORT,
     () => console.log(`Server alive on http://localhost:${PORT}`)
