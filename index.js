@@ -26,11 +26,16 @@ app.use(function (req, res, next) {
 });
 
 function createToken(username, password) {
+    // TODO check if credentials are correct
+
     const privateKey = fs.readFileSync("keys/token_rs256");
-    return jwt.sign({username: username}, {
-        key: privateKey,
-        passphrase: process.env.PASSPHRASE
-    }, {algorithm: "RS256"});
+    return jwt.sign(
+        {
+            userId: 1,
+        }, {
+            key: privateKey,
+            passphrase: process.env.PASSPHRASE
+        }, {algorithm: "RS256"});
 }
 
 function retrieveToken(req, res, next) {
