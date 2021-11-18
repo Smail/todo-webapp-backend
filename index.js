@@ -52,7 +52,6 @@ function retrieveToken(req, res, next) {
     }
 }
 
-// Return all cards from the deck
 app.post("/login", (req, res) => {
     const basicHeader = req.headers["authorization"];
     let username = "";
@@ -91,7 +90,6 @@ app.post("/login", (req, res) => {
     }
 });
 
-// Return all cards from the deck
 app.get("/verify", retrieveToken, (req, res) => {
     const cert = fs.readFileSync("keys/token_rs256.pub");
     jwt.verify(req.token, cert, function (err, decoded) {
