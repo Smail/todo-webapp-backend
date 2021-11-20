@@ -3,7 +3,16 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const app = express();
 const PORT = 8090;
-const d = require("./database.js");
+const {
+    getProjects,
+    getUserId,
+    getTasks,
+    moveTask,
+    ownsUserProject,
+    ownsUserTask,
+    updateTask,
+    getTask, deleteTask, deleteProject, createTask
+} = require("./database");
 
 app.use(express.json());
 
