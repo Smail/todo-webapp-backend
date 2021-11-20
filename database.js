@@ -42,7 +42,17 @@ function getUserId(username, password) {
     throw new Error("Invalid credentials");
 }
 
+function ownsUserProject(userId, projectId) {
+    return db.prepare(
+        `SELECT COUNT(*) AS count
+         FROM UserProject UP
+         WHERE UP.UserId = :userId
+           AND UP.ProjectId = :projectId`
+    ).get({userId, projectId}).count === 1;
+}
+
 module.exports = {
     getUserId,
     getProjects,
+    ownsUserProject,
 }
