@@ -27,6 +27,21 @@ function getProjects(userId) {
     return stmt.all({userId});
 }
 
+function getTasks(userId, projectId) {
+    return db.prepare(
+        `SELECT T.TaskId      AS id,
+                T.TaskName    AS name,
+                T.TaskContent AS content,
+                T.Duration    AS duration,
+                T.DueDate     AS dueDate
+         FROM UserProject UP
+                  JOIN ProjectTask PT on UP.ProjectId = PT.ProjectId
+                  JOIN Task T on PT.TaskId = T.TaskId
+         WHERE PT.ProjectId = :projectId
+           AND UP.UserId = :userId`
+    ).all({userId, projectId});
+}
+
 function getUserId(username, password) {
     const stmt = db.prepare(
         `SELECT UserId AS id, PasswordHash AS hash
@@ -83,6 +98,7 @@ module.exports = {
     getUserId,
     getProjects,
     getTask,
+    getTasks,
     ownsUserProject,
     ownsUserTask,
 }
