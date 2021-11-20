@@ -213,6 +213,31 @@ app.patch("/moveTask/:taskId/:projectId", retrieveToken, verifyToken, verifyProj
         }
     });
 
+app.put("/task/:taskId", retrieveToken, verifyToken, verifyTaskOwnership, (req, res) => {
+    const task = {
+        name: req.body.name,
+        content: req.body.content,
+        duration: req.body.duration,
+        dueDate: req.body.dueDate,
+    };
+
+    // A PUT request requires a transmission of the whole object
+    for (const key in task) {
+        if (task[key] === undefined) {
+            res.sendStatus(400);
+            return;
+        }
+    }
+
+    try {
+        updateTask(req.decodedPayload.userId, req.params.taskId, task);
+        res.sendStatus(200);
+    } catch (e) {
+        console.error(e);
+        res.sendStatus(500);
+    }
+});
+
 app.listen(
     PORT,
     () => console.log(`Server alive at http://localhost:${PORT}`)
