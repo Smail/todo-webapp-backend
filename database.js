@@ -61,9 +61,28 @@ function ownsUserTask(userId, taskId) {
     ).get({userId, taskId}).count === 1;
 }
 
+function getTask(userId, taskId) {
+    return db.prepare(
+        `SELECT TaskId      AS id,
+                TaskName    AS name,
+                TaskContent AS content,
+                Duration    AS duration,
+                DueDate     AS dueDate
+         FROM Task
+         WHERE TaskId = :taskId
+           AND EXISTS(
+                 SELECT UP.UserId
+                 FROM UserProject UP
+                          JOIN ProjectTask PT on UP.ProjectId = PT.ProjectId
+                 WHERE UP.UserId = :userId
+                   AND PT.TaskId = :taskId)`
+    ).get({userId, taskId});
+}
+
 module.exports = {
     getUserId,
     getProjects,
+    getTask,
     ownsUserProject,
     ownsUserTask,
 }
