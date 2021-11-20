@@ -169,6 +169,10 @@ app.get("/projects", retrieveToken, verifyToken, (req, res) => {
     res.send(getProjects(req.decodedPayload.userId));
 });
 
+app.delete("/project/:projectId", retrieveToken, verifyToken, verifyProjectOwnership, (req, res) => {
+    res.send(deleteProject(req.decodedPayload.userId, req.params.projectId));
+});
+
 app.get("/project/:projectId/tasks", retrieveToken, verifyToken, verifyProjectOwnership, (req, res) => {
     res.send(getTasks(req.decodedPayload.userId, req.params.projectId));
 });
