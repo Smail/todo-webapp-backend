@@ -64,6 +64,7 @@ function retrieveToken(req, res, next) {
             res.status(401).send("Bearer announced but no token was provided");
         }
     } else {
+        console.error("Bearer header not of type string");
         res.setHeader("WWW-Authenticate", "Bearer");
         res.sendStatus(401);
     }
