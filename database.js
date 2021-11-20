@@ -129,6 +129,21 @@ function getTask(userId, taskId) {
     ).get({userId, taskId});
 }
 
+function moveTask(userId, taskId, newProjectId) {
+    const stmt = db.prepare(
+        `UPDATE ProjectTask
+         SET ProjectId = :newProjectId
+         WHERE TaskId = :taskId
+           AND EXISTS(
+                 SELECT UserId
+                 FROM UserProject UP
+                 WHERE UP.UserId = :userId
+                   AND UP.ProjectId = :newProjectId)`
+    );
+
+    return runTransactionLimitRows(stmt, {userId, taskId, newProjectId}, 1) === 1;
+}
+
 function updateTask(userId, taskId, task) {
     const stmt = db.prepare(
         `UPDATE Task
@@ -180,6 +195,7 @@ module.exports = {
     getProjects,
     getTask,
     getTasks,
+    moveTask,
     updateTask,
     deleteTask,
     ownsUserProject,
