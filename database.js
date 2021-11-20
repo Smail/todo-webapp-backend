@@ -50,6 +50,23 @@ function getProjects(userId) {
     return stmt.all({userId});
 }
 
+function deleteProject(userId, projectId) {
+    const stmt = db.prepare(
+        `DELETE
+         FROM Project
+         WHERE ProjectId = :projectId
+           AND EXISTS(
+                 SELECT Up.UserId
+                 FROM UserProject UP
+                 WHERE UP.UserId = :userId)`
+    );
+
+    return runTransactionLimitRows(stmt, {
+        userId,
+        projectId,
+    }, 1) === 1;
+}
+
 function getTasks(userId, projectId) {
     return db.prepare(
         `SELECT T.TaskId      AS id,
@@ -193,6 +210,7 @@ module.exports = {
     getUserId,
     createTask,
     getProjects,
+    deleteProject,
     getTask,
     getTasks,
     moveTask,
