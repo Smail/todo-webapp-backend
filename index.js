@@ -4,6 +4,7 @@ const fs = require("fs");
 const app = express();
 const PORT = 8090;
 const privateKey = fs.readFileSync("keys/token_rs256");
+const publicKey = fs.readFileSync("keys/token_rs256.pub");
 const {
     getProjects,
     getUserId,
@@ -66,6 +67,24 @@ function retrieveToken(req, res, next) {
         res.setHeader("WWW-Authenticate", "Bearer");
         res.sendStatus(401);
     }
+}
+
+function verifyToken(req, res, next) {
+    jwt.verify(req.token, publicKey, function (err, decoded) {
+        if (!err) {
+            req.decodedPayload = decoded;
+
+            if (typeof (decoded.userId) !== "number") {
+                const errorMsg = "Argument 'userId' is not a number";
+                console.error(errorMsg);
+                res.status(401).send(errorMsg);
+            } else {
+                next();
+            }
+        } else {
+            res.sendStatus(403);
+        }
+    });
 }
 
 app.post("/login", (req, res) => {
