@@ -106,6 +106,19 @@ function verifyProjectOwnership(req, res, next) {
     }
 }
 
+function verifyTaskOwnership(req, res, next) {
+    const userId = req.decodedPayload.userId;
+    const taskId = req.params.taskId;
+
+    if (ownsUserTask(userId, taskId)) {
+        next();
+    } else {
+        const errorMsg = "User " + userId + " does not own task " + taskId;
+        console.error(errorMsg);
+        res.status(401).send(errorMsg);
+    }
+}
+
 app.post("/login", (req, res) => {
     const basicHeader = req.headers["authorization"];
     let username = "";
