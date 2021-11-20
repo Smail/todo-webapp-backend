@@ -132,28 +132,31 @@ app.post("/login", (req, res) => {
             // Schema: username:password
             const credentialsEncoded = Buffer.from(credentialsBase64, 'base64').toString('utf-8');
             const credentials = credentialsEncoded.split(":");
+            const send401 = function (message) {
+                res.setHeader("WWW-Authenticate", 'Basic realm="Login / Token generation"');
+
+                if (message !== undefined && message !== null && typeof (message) === "string" && message.length > 0) {
+                    res.status(401).send(message);
+                } else {
+                    res.sendStatus(401);
+                }
+            };
 
             if (credentials != null && credentials.length === 2 &&
+                typeof (credentials[0]) === "string" && typeof (credentials[1]) === "string" &&
                 credentials[0].length > 0 && credentials[1].length > 0) {
                 username = credentials[0];
                 password = credentials[1];
+
+                try {
+                    res.send({token: createToken(username, password)});
+                } catch (e) {
+                    send401(e.message);
+                }
             } else {
-                res.setHeader("WWW-Authenticate", 'Basic realm="Login / Token generation"');
-                res.status(401).send("Username or password was not provided");
-                return;
+                send401("No credentials provided");
             }
         }
-    }
-
-    if (typeof (username) === "string" && typeof (password) === "string" && username.length) {
-        try {
-            res.send({token: createToken(username, password)});
-        } catch (e) {
-            res.sendStatus(500);
-        }
-    } else {
-        res.setHeader("WWW-Authenticate", 'Basic realm="Token generation"');
-        res.status(401).send("Username or password was not provided");
     }
 });
 
