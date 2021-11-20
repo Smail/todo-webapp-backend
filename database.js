@@ -1,4 +1,5 @@
 const fs = require("fs");
+const bcrypt = require("bcrypt");
 const Database = require("better-sqlite3");
 const DB_PATH = "database/db.sqlite3";
 
@@ -26,6 +27,22 @@ function getProjects(userId) {
     return stmt.all({userId});
 }
 
+function getUserId(username, password) {
+    const stmt = db.prepare(
+        `SELECT UserId AS id, PasswordHash AS hash
+         FROM User
+         WHERE LOWER(Username) = LOWER(:username)`
+    );
+    const user = stmt.get({username});
+
+    if (user != null && bcrypt.compareSync(password, user.hash.replace(/^\$2y(.+)$/i, '$2a$1'))) {
+        return user.id;
+    }
+
+    throw new Error("Invalid credentials");
+}
+
 module.exports = {
+    getUserId,
     getProjects,
 }
