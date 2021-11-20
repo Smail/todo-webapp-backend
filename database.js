@@ -13,5 +13,6 @@ process.on('SIGTERM', () => process.exit(128 + 15));
 if (initDatabase) {
     const createTablesQuery = fs.readFileSync("database/sql/CreateTables.sql", "utf8");
 
+    console.log("Init database");
     db.exec(createTablesQuery);
 }
