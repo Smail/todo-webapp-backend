@@ -9,4 +9,4 @@ switch to NodeJS Express, because it's much simpler and less time-consuming.
 
 ## Run
 
-``yarn serve``
+``node index.js``
