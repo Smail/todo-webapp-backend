@@ -18,6 +18,29 @@ if (initDatabase) {
     db.exec(createTablesQuery);
 }
 
+function createTask(projectId, task) {
+    return db.transaction(() => {
+        let stmt = db.prepare(
+            `INSERT INTO Task(TaskName, TaskContent, Duration, DueDate)
+             VALUES (:name, :content, :duration, :dueDate)`
+        );
+
+        const info = stmt.run({name: task.name, content: task.content, duration: task.duration, dueDate: task.dueDate});
+        if (info.changes === 1) {
+            const taskId = info.lastInsertRowid;
+
+            stmt = db.prepare(
+                `INSERT INTO ProjectTask(ProjectId, TaskId)
+                 VALUES (:projectId, :taskId)`
+            );
+            stmt.run({projectId, taskId});
+
+            return taskId;
+        }
+        return -1;
+    })();
+}
+
 function getProjects(userId) {
     const stmt = db.prepare(
         `SELECT P.ProjectId AS id, ProjectName AS name
@@ -153,6 +176,7 @@ function deleteTask(userId, taskId) {
 
 module.exports = {
     getUserId,
+    createTask,
     getProjects,
     getTask,
     getTasks,
