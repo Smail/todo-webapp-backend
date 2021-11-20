@@ -16,3 +16,16 @@ if (initDatabase) {
     console.log("Init database");
     db.exec(createTablesQuery);
 }
+
+function getProjects(userId) {
+    const stmt = db.prepare(
+        `SELECT P.ProjectId AS id, ProjectName AS name
+         FROM Project P
+                  JOIN UserProject UP on P.ProjectId = UP.ProjectId
+         WHERE UP.UserId = :userId`);
+    return stmt.all({userId});
+}
+
+module.exports = {
+    getProjects,
+}
