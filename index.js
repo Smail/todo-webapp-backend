@@ -255,6 +255,19 @@ app.patch("/task/:taskId", retrieveToken, verifyToken, verifyTaskOwnership, (req
     }
 });
 
+app.delete("/task/:taskId", retrieveToken, verifyToken, verifyTaskOwnership, (req, res) => {
+    try {
+        if (deleteTask(req.decodedPayload.userId, req.params.taskId)) {
+            res.sendStatus(200);
+        } else {
+            res.status(500).send("Could not move task");
+        }
+    } catch (e) {
+        console.error(e);
+        res.sendStatus(500);
+    }
+});
+
 app.listen(
     PORT,
     () => console.log(`Server alive at http://localhost:${PORT}`)
