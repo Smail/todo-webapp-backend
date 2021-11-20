@@ -87,6 +87,25 @@ function verifyToken(req, res, next) {
     });
 }
 
+function verifyProjectOwnership(req, res, next) {
+    const userId = req.decodedPayload.userId;
+    const projectId = req.params.projectId;
+
+    if (typeof (projectId) !== "string" || !Number.parseInt(projectId)) {
+        const errorMsg = "Argument 'projectId' is not a number: " + projectId;
+        console.error(errorMsg);
+        res.status(401).send(errorMsg);
+    } else {
+        if (ownsUserProject(userId, projectId)) {
+            next();
+        } else {
+            const errorMsg = "User " + userId + " does not own project " + projectId;
+            console.error(errorMsg);
+            res.status(401).send(errorMsg);
+        }
+    }
+}
+
 app.post("/login", (req, res) => {
     const basicHeader = req.headers["authorization"];
     let username = "";
