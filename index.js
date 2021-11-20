@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const app = express();
 const PORT = 8090;
+const privateKey = fs.readFileSync("keys/token_rs256");
 const {
     getProjects,
     getUserId,
@@ -36,16 +37,16 @@ app.use(function (req, res, next) {
 });
 
 function createToken(username, password) {
-    // TODO check if credentials are correct
+    const userId = getUserId(username, password);
+    const payload = {
+        userId,
+    };
+    const key = {
+        key: privateKey,
+        passphrase: process.env.PASSPHRASE,
+    };
+    return jwt.sign(payload, key, {algorithm: "RS256"});
 
-    const privateKey = fs.readFileSync("keys/token_rs256");
-    return jwt.sign(
-        {
-            userId: 1,
-        }, {
-            key: privateKey,
-            passphrase: process.env.PASSPHRASE
-        }, {algorithm: "RS256"});
 }
 
 function retrieveToken(req, res, next) {
