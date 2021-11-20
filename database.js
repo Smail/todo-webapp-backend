@@ -76,6 +76,18 @@ function ownsUserTask(userId, taskId) {
     ).get({userId, taskId}).count === 1;
 }
 
+function runTransactionLimitRows(stmt, binding, rowLimit = 1) {
+    return db.transaction(() => {
+        const info = stmt.run(binding);
+
+        if (info.changes > rowLimit) {
+            throw Error("Too many rows affected");
+        }
+
+        return info.changes;
+    })();
+}
+
 function getTask(userId, taskId) {
     return db.prepare(
         `SELECT TaskId      AS id,
@@ -94,11 +106,38 @@ function getTask(userId, taskId) {
     ).get({userId, taskId});
 }
 
+function updateTask(userId, taskId, task) {
+    const stmt = db.prepare(
+        `UPDATE Task
+         SET TaskName    = :name,
+             TaskContent = :content,
+             Duration    = :duration,
+             DueDate     = :dueDate
+         WHERE TaskId = :taskId
+           AND EXISTS(
+                 SELECT Up.UserId
+                 FROM UserProject UP
+                          JOIN ProjectTask PT on UP.ProjectId = PT.ProjectId
+                 WHERE UP.UserId = :userId
+                   AND PT.TaskId = :taskId)`
+    );
+
+    return runTransactionLimitRows(stmt, {
+        userId,
+        taskId,
+        name: task.name,
+        content: task.content,
+        duration: task.duration,
+        dueDate: task.dueDate,
+    }, 1) === 1;
+}
+
 module.exports = {
     getUserId,
     getProjects,
     getTask,
     getTasks,
+    updateTask,
     ownsUserProject,
     ownsUserTask,
 }
