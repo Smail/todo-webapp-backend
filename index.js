@@ -165,21 +165,8 @@ app.get("/verify", retrieveToken, verifyToken, (req, res) => {
     res.sendStatus(200);
 });
 
-app.get("/projects", retrieveToken, (req, res) => {
-    const cert = fs.readFileSync("keys/token_rs256.pub");
-    jwt.verify(req.token, cert, function (err, decoded) {
-        if (!err) {
-            const userId = decoded.userId;
-            res.send([
-                {
-                    id: 1,
-                    name: "Inbox",
-                }
-            ]);
-        } else {
-            res.sendStatus(403);
-        }
-    });
+app.get("/projects", retrieveToken, verifyToken, (req, res) => {
+    res.send(getProjects(req.decodedPayload.userId));
 });
 
 app.get("/projects/:projectId/tasks", retrieveToken, (req, res) => {
