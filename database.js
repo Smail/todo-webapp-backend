@@ -132,12 +132,32 @@ function updateTask(userId, taskId, task) {
     }, 1) === 1;
 }
 
+function deleteTask(userId, taskId) {
+    const stmt = db.prepare(
+        `DELETE
+         FROM Task
+         WHERE TaskId = :taskId
+           AND EXISTS(
+                 SELECT Up.UserId
+                 FROM UserProject UP
+                          JOIN ProjectTask PT on UP.ProjectId = PT.ProjectId
+                 WHERE UP.UserId = :userId
+                   AND PT.TaskId = :taskId)`
+    );
+
+    return runTransactionLimitRows(stmt, {
+        userId,
+        taskId,
+    }, 1) === 1;
+}
+
 module.exports = {
     getUserId,
     getProjects,
     getTask,
     getTasks,
     updateTask,
+    deleteTask,
     ownsUserProject,
     ownsUserTask,
 }
