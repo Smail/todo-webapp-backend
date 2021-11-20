@@ -177,19 +177,26 @@ app.get("/project/:projectId/tasks", retrieveToken, verifyToken, verifyProjectOw
     res.send(getTasks(req.decodedPayload.userId, req.params.projectId));
 });
 
-app.post("/projects/:projectId/task/", retrieveToken, (req, res) => {
-    const cert = fs.readFileSync("keys/token_rs256.pub");
-    jwt.verify(req.token, cert, function (err, decoded) {
-        if (!err) {
-            const userId = decoded.userId;
-            // TODO add to db
-            res.send({
-                id: Math.floor(Math.random() * 100000) + 50,
-            });
-        } else {
-            res.sendStatus(403);
+app.post("/project/:projectId/task", retrieveToken, verifyToken, verifyProjectOwnership, (req, res) => {
+    console.log(req.body);
+
+    if (req.body.name === undefined) {
+        res.status(400).send("Missing required attribute 'name'");
+    } else {
+        const task = {
+            name: req.body.name,
+            content: req.body.content,
+            duration: req.body.duration,
+            dueDate: req.body.dueDate,
+        };
+
+        try {
+            res.send({id: createTask(req.params.projectId, task)});
+        } catch (e) {
+            console.error(e);
+            res.sendStatus(500);
         }
-    });
+    }
 });
 
 app.listen(
