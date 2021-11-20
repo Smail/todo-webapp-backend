@@ -199,6 +199,20 @@ app.post("/project/:projectId/task", retrieveToken, verifyToken, verifyProjectOw
     }
 });
 
+app.patch("/moveTask/:taskId/:projectId", retrieveToken, verifyToken, verifyProjectOwnership, verifyTaskOwnership,
+    (req, res) => {
+        try {
+            if (moveTask(req.decodedPayload.userId, req.params.taskId, req.params.projectId)) {
+                res.sendStatus(200);
+            } else {
+                res.status(500).send("Could not move task");
+            }
+        } catch (e) {
+            console.error(e);
+            res.sendStatus(500);
+        }
+    });
+
 app.listen(
     PORT,
     () => console.log(`Server alive at http://localhost:${PORT}`)
