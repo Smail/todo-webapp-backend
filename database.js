@@ -12,8 +12,6 @@ process.on('SIGTERM', () => process.exit(128 + 15));
 // initiate database on first time use
 if (initDatabase) {
     const createTablesQuery = fs.readFileSync("database/sql/CreateTables.sql", "utf8");
-    const insertExamplesQuery = fs.readFileSync("database/sql/InsertExamples.sql", "utf8");
 
     db.exec(createTablesQuery);
-    db.exec(insertExamplesQuery);
 }
