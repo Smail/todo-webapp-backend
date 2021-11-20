@@ -169,21 +169,8 @@ app.get("/projects", retrieveToken, verifyToken, (req, res) => {
     res.send(getProjects(req.decodedPayload.userId));
 });
 
-app.get("/projects/:projectId/tasks", retrieveToken, (req, res) => {
-    const cert = fs.readFileSync("keys/token_rs256.pub");
-    jwt.verify(req.token, cert, function (err, decoded) {
-        if (!err) {
-            const userId = decoded.userId;
-            res.send([
-                {
-                    id: 1,
-                    name: "My first task",
-                }
-            ]);
-        } else {
-            res.sendStatus(403);
-        }
-    });
+app.get("/project/:projectId/tasks", retrieveToken, verifyToken, verifyProjectOwnership, (req, res) => {
+    res.send(getTasks(req.decodedPayload.userId, req.params.projectId));
 });
 
 app.post("/projects/:projectId/task/", retrieveToken, (req, res) => {
