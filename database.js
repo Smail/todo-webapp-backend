@@ -51,8 +51,19 @@ function ownsUserProject(userId, projectId) {
     ).get({userId, projectId}).count === 1;
 }
 
+function ownsUserTask(userId, taskId) {
+    return db.prepare(
+        `SELECT COUNT(*) AS count
+         FROM UserProject UP
+                  JOIN ProjectTask PT on UP.ProjectId = PT.ProjectId
+         WHERE UP.UserId = :userId
+           AND PT.TaskId = :taskId`
+    ).get({userId, taskId}).count === 1;
+}
+
 module.exports = {
     getUserId,
     getProjects,
     ownsUserProject,
+    ownsUserTask,
 }
