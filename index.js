@@ -238,6 +238,23 @@ app.put("/task/:taskId", retrieveToken, verifyToken, verifyTaskOwnership, (req, 
     }
 });
 
+app.patch("/task/:taskId", retrieveToken, verifyToken, verifyTaskOwnership, (req, res) => {
+    const task = getTask(req.decodedPayload.userId, req.params.taskId);
+
+    task.name = req.body.name ?? task.name;
+    task.content = req.body.content ?? task.content;
+    task.duration = req.body.duration ?? task.duration;
+    task.dueDate = req.body.dueDate ?? task.dueDate;
+
+    try {
+        updateTask(req.decodedPayload.userId, req.params.taskId, task);
+        res.sendStatus(200);
+    } catch (e) {
+        console.error(e);
+        res.sendStatus(500);
+    }
+});
+
 app.listen(
     PORT,
     () => console.log(`Server alive at http://localhost:${PORT}`)
