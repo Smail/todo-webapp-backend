@@ -5,6 +5,8 @@ switch to NodeJS Express, because it's much simpler and less time-consuming.
 
 ## Install
 
+Node version: 16
+
 ``yarn install``
 
 ## Run
