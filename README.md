@@ -11,4 +11,4 @@ Node version: 16
 
 ## Run
 
-``node index.js``
+``yarn serve``
