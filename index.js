@@ -47,8 +47,8 @@ function createToken(username, password) {
         key: privateKey,
         passphrase: process.env.PASSPHRASE,
     };
-    return jwt.sign(payload, key, {algorithm: "RS256"});
 
+    return jwt.sign(payload, key, { algorithm: "RS256" });
 }
 
 function retrieveToken(req, res, next) {
@@ -151,7 +151,7 @@ app.post("/login", (req, res) => {
                 password = credentials[1];
 
                 try {
-                    res.send({token: createToken(username, password)});
+                    res.send({ token: createToken(username, password) });
                 } catch (e) {
                     send401(e.message);
                 }
@@ -192,7 +192,7 @@ app.post("/project/:projectId/task", retrieveToken, verifyToken, verifyProjectOw
         };
 
         try {
-            res.send({id: createTask(req.params.projectId, task)});
+            res.send({ id: createTask(req.params.projectId, task) });
         } catch (e) {
             console.error(e);
             res.sendStatus(500);
